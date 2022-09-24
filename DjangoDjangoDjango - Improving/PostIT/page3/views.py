@@ -56,7 +56,9 @@ def home_timeline(request, post_id=None):
     except:
         pass
     # Set up pagination
-    p = Paginator(Post.objects.all().order_by('-post_datetime'), 4)
+    # request.session['loaded_posts'] = object_list
+    p = Paginator(object_list, 4)
+    # p = Paginator(Post.objects.all().order_by('-post_datetime'), 4)
     page = request.GET.get('page')
     objects = p.get_page(page)
     a = 200
@@ -93,6 +95,35 @@ def home_timeline(request, post_id=None):
             'profiles': profiles,
         }
     return render(request, 'home_timeline.html', context)
+
+
+def loaded_home_timeline(request):
+    # object_list = request.session['loaded_posts']
+    object_list = ""
+    p = Paginator(object_list, 4)
+    # p = Paginator(Post.objects.all().order_by('-post_datetime'), 4)
+    page = request.GET.get('page')
+    objects = p.get_page(page)
+    a = 200
+    print(objects)
+    try:
+
+        last_viewed = request.session['post_in_view']
+    except:
+        last_viewed = ""
+    image_list = ImageFiles.objects.all()
+    profiles = Profile.objects.all()
+    has_images_to_show = False
+
+    context = {
+        'object_list': object_list,
+        'image_list': image_list,
+        'objects': objects,
+        'last_viewed': last_viewed,
+        'has_images_to_show': has_images_to_show,
+        'profiles': profiles,
+    }
+    return render(request, 'loaded_home_timeline.html', context)
 
 
 def post_details(request, post_id):
@@ -365,6 +396,73 @@ def add_image_reply(request, pk):
         'imageform': imageform
     }
     return render(request, 'add_image_reply.html', context)
+
+
+def replies_page(request, pk):
+    form = PostImageForm()
+    imageform = ImageForm()
+    post_data = return_post_data(request, pk)
+    context = {
+        'form': form
+    }
+
+    replying_to = []
+    # replying_to = Post.objects.get(id=pk)
+    replying_to = get_parent_post(pk, replying_to)
+    replying_to = replying_to[::-1]
+    context = {
+        'form': form,
+        'replying_to': replying_to,
+        'imageform': imageform
+    }
+
+    if request.method == 'POST':
+        print(request.POST)
+
+        form = PostImageForm(request.POST)
+        files = request.FILES.getlist("image")
+        if form.is_valid():
+            # form.save()
+            instance = form.save(commit=False)
+            instance.author = request.user
+            instance.reply_to = pk
+            instance.is_reply = True
+            if files:
+                instance.has_images = True
+            else:
+                instance.has_images = False
+            instance.save()
+
+            for file in files:
+                ImageFiles.objects.create(post=instance, image=file)
+
+            reply = Replies(reply_to=pk, post_id=instance.id)
+            reply.save()
+
+            context.update(post_data)
+            return redirect(request.META.get('HTTP_REFERER'))
+            # return render(request, 'replies.html', context)
+            # return render(request, 'post.html', post_data)
+            # return redirect(request.META.get('HTTP_REFERER'))
+            # return redirect('home-page')
+            # return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
+        else:
+            replying_to = []
+            replying_to = Post.objects.get(id=pk)
+            context = {
+                'form': form,
+                'replying_to': replying_to
+            }
+
+            context.update(post_data)
+            return render(request, 'replies.html', context)
+    else:
+        form = PostImageForm()
+        imageform = ImageForm()
+
+    context.update(post_data)
+    print(context)
+    return render(request, 'replies.html', context)
 
 
 def add_video_reply(request, pk):
@@ -679,12 +777,8 @@ def category(request, cat):
     }
     return render(request, 'posts_by_category.html', context)
 
-# class HomeView(ListView):
-#     model = Post
-#     template_name = 'home.html'
-
-
 # REST API Views
+
 
 def home_view(request):
     return render(request, "api/home_view.html", status=200)

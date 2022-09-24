@@ -129,6 +129,7 @@ Page3 Homepage
                                         <a href="{% url 'add-reply' post.pk %}">Text Reply</a> <a
                                             href="{% url 'add-image-reply' post.pk %}">Image Reply</a> <a
                                             href="{% url 'add-video-reply' post.pk %}">Video Reply</a>
+                                        <a href="{% url 'replies-page' post.pk %}">Reply</a>
 
                                         {% endif %}
 
@@ -146,34 +147,7 @@ Page3 Homepage
             </div>
         </div>
         <br />
-        <!-- <center>
-        <div onshow="getRadioButtons()" class="popup-container" id="popup-container">
-            <div class="popup">
-                <p id="post-body">Lorem ipsum dolor sit amet consectetur adipisicing elit. Sunt possimus obcaecati cum
-                    vitae, impedit,
-                    accusamus laboriosam neque perferendis asperiores consequuntur est nisi culpa dolores quidem eveniet
-                    aliquid, eligendi quo nulla?</p>
-                <div class="image-holder">
-                    <div class="slider">
-                        <div id="post-body-images" class="slides">
 
-                        </div>
-                        <div id="post-body-video" class="slides">
-
-                        </div>
-                        <div id="post-interact" class="post-interact">
-
-                        </div>
-                        <div id="post-replies" class="post-replies">
-
-                        </div>
-
-                    </div>
-                </div>
-                <button id="close-popup">Close</button>
-            </div>
-        </div>
-    </center> -->
 
 
 
@@ -257,8 +231,6 @@ Page3 Homepage
 
 
 
-
-<!-- REST API View -->
 <script>
 
 
@@ -326,6 +298,8 @@ Page3 Homepage
 
         scrollPos = window.pageYOffset
         localStorage.setItem("scrollPosition", scrollPos);
+        localStorage.setItem("loadedPosts", '{{objects}}')
+        console.log(localStorage.getItem("loadedPosts"))
         console.log(localStorage.getItem("scrollPosition"))
         console.log("Scroll position Y" + scrollPos)
     }
@@ -354,109 +328,6 @@ Page3 Homepage
         //window.scrollTo(0, parseInt(localStorage.getItem("scrollPosition")));
 
 
-    }
-
-
-</script>
-
-
-<!-- <script src="{% static 'PostIT/js/popupHandler.js' %}"></script> -->
-<script src="{% static 'PostIT/js/showPost.js' %}"></script>
-<script>
-    const openPopup = document.getElementById('open-popup')
-    const popupContainer = document.getElementById('popup-container')
-    const closePopup = document.getElementById('close-popup')
-
-
-    openPopup.addEventListener('click', () => {
-        popupContainer.classList.add('show');
-    });
-
-    closePopup.addEventListener('click', () => {
-
-        popupContainer.classList.remove('show');
-        var e = document.getElementById("post-body-images");
-
-        //e.firstElementChild can be used.
-        var child = e.lastElementChild;
-        console.log("Child: " + child)
-        while (child) {
-            //console.log("Child: " + child)
-            e.removeChild(child);
-            child = e.lastElementChild;
-
-        }
-
-        var v = document.getElementById("post-body-video");
-
-        //e.firstElementChild can be used.
-        var child = v.lastElementChild;
-        console.log("Child: " + child)
-        while (child) {
-            //console.log("Child: " + child)
-            v.removeChild(child);
-            child = v.lastElementChild;
-
-        }
-
-        var postInteractElement = document.getElementById("post-interact")
-        var child = postInteractElement.lastElementChild;
-        console.log("Child: " + child)
-        while (child) {
-            //console.log("Child: " + child)
-            postInteractElement.removeChild(child);
-            child = postInteractElement.lastElementChild;
-
-        }
-
-        var postRepliesElement = document.getElementById("post-replies")
-        var child = postRepliesElement.lastElementChild;
-        console.log("Child: " + child)
-        while (child) {
-            //console.log("Child: " + child)
-            postRepliesElement.removeChild(child);
-            child = postRepliesElement.lastElementChild;
-
-        }
-
-        myfunction();
-    });
-
-
-    $(document).on('click', '#show-popup', function (e) {
-        e.preventDefault();
-        var this_ = $(this)
-        postid = this_.attr("value").valueOf()
-        console.log(postid)
-        //popupContainer.classList.add('show');
-
-        $.ajax({
-            type: 'POST',
-            url: '{% url "get_post_data" %}',
-            data: {
-                postid: postid,
-                // postid: $('#like-button').val(),
-                action: 'post',
-                // postid: '{{ post.pk }}',
-            },
-            success: function (json) {
-
-                expandPost(json, this_)
-
-            },
-            error: function (xhr, errmsg, err) {
-
-            }
-        });
-    });
-</script>
-
-<script>
-    function findSelected() {
-        let selected = document.querySelector("input[name='img']:checked").value;
-        var img = document.getElementById("post-img");
-        img.src = selected;
-        console.log("Selcected Radio value: ", selected)
     }
 
 
