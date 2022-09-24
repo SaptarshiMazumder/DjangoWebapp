@@ -13,7 +13,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, JsonResponse, HttpResponseNotAllowed
 from django.views.generic import ListView, DetailView
 from matplotlib.style import context
-from . models import Post, Replies, ImageFiles
+from . models import Post, Replies, ImageFiles, Profile
 from . forms import EditPostForm, EditVideoPostForm, ImageForm, PostForm, PostImageForm, PostVideoForm, EditImagePostForm
 from django.http import HttpResponseRedirect
 from django.urls import reverse, reverse_lazy
@@ -67,9 +67,11 @@ def home_timeline(request, post_id=None):
     except:
         last_viewed = ""
     image_list = ImageFiles.objects.all()
+    profiles = Profile.objects.all()
     has_images_to_show = False
     try:
         post = Post.objects.get(id=post_id)
+        profile = Post.objects.get(user=post['author'])
         context = {
             'object_list': object_list,
             'image_list': image_list,
@@ -79,6 +81,7 @@ def home_timeline(request, post_id=None):
             'objects': objects,
             'last_viewed': last_viewed,
             'has_images_to_show': has_images_to_show,
+            'profile': profile,
         }
     except:
         context = {
@@ -87,6 +90,7 @@ def home_timeline(request, post_id=None):
             'objects': objects,
             'last_viewed': last_viewed,
             'has_images_to_show': has_images_to_show,
+            'profiles': profiles,
         }
     return render(request, 'home_timeline.html', context)
 
@@ -136,6 +140,47 @@ def post_details(request, post_id):
     }
 
     return render(request, 'post.html', context)
+
+
+def return_post_data(request, post_id):
+    post = Post.objects.get(id=post_id)
+    image_list = ImageFiles.objects.all()
+
+    replies_obj = []
+    replies_to_post = []
+
+    replies = Replies.objects.filter(reply_to=post_id)
+
+    if replies:
+        print("REPLIES", replies)
+        for reply in replies:
+            reply_post = Post.objects.get(id=reply.post_id)
+            replies_obj.append(reply_post)
+        replies_to_post = replies_obj[::-1]
+    liked = False
+    if post.likes.filter(id=request.user.id).exists():
+        liked = True
+    total_likes = post.total_likes()
+    print("Working till here")
+    parents_arr = []
+    if post.is_reply:
+        parents_arr = get_parent_post(post.reply_to, parents_arr)
+        parents_arr = parents_arr[::-1]
+
+    context = {
+        'post': post,
+        'total_likes': total_likes,
+        'liked': liked,
+        'replies': replies,
+        'replies_obj': replies_obj,
+        'replies_to_post': replies_to_post,
+        'parents_arr': parents_arr,
+        'image_list': image_list,
+        'last_viewed': "",
+
+    }
+
+    return context
 
 
 def add_post(request):
@@ -294,7 +339,9 @@ def add_image_reply(request, pk):
             reply = Replies(reply_to=pk, post_id=instance.id)
             reply.save()
 
-            return redirect(request.META.get('HTTP_REFERER'))
+            context = return_post_data(request, pk)
+            return render(request, 'post.html', context)
+            # return redirect(request.META.get('HTTP_REFERER'))
             # return redirect('home-page')
             # return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
         else:
@@ -341,7 +388,9 @@ def add_video_reply(request, pk):
             reply = Replies(reply_to=pk, post_id=instance.id)
             reply.save()
 
-            return redirect('home-page')
+            context = return_post_data(request, pk)
+            return render(request, 'post.html', context)
+            # return redirect('home-page')
         else:
             replying_to = []
             replying_to = Post.objects.get(id=pk)
