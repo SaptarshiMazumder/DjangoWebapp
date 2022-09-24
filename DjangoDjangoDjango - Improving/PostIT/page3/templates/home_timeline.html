@@ -130,6 +130,7 @@ Page3 Homepage
                                             href="{% url 'add-image-reply' post.pk %}">Image Reply</a> <a
                                             href="{% url 'add-video-reply' post.pk %}">Video Reply</a>
                                         <a href="{% url 'replies-page' post.pk %}">Reply</a>
+                                        <a href="{% url 'ajax-replies' post.pk %}">AJAX Reply</a>
 
                                         {% endif %}
 

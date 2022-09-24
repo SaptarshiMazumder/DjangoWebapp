@@ -1,14 +1,17 @@
 
 
-from cgitb import reset
+from cgitb import html, reset
 from dataclasses import fields
 from email.mime import image
 from ftplib import all_errors
+from multiprocessing import reduction
 from operator import is_
 import os
+import re
 from tkinter import Image
-from turtle import pos
+from turtle import pos, title
 from unittest import result
+from urllib.request import Request
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, JsonResponse, HttpResponseNotAllowed
 from django.views.generic import ListView, DetailView
@@ -19,6 +22,7 @@ from django.http import HttpResponseRedirect
 from django.urls import reverse, reverse_lazy
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
+from django.template.loader import render_to_string
 # Create your views here.
 # Paginator stuff
 from django.core.paginator import Paginator
@@ -36,6 +40,10 @@ from rest_framework.decorators import api_view
 #         'object_list': object_list
 #     }
 #     return render(request, 'home.html', context)
+
+
+def is_ajax(request):
+    return request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest'
 
 
 def home(request):
@@ -97,33 +105,80 @@ def home_timeline(request, post_id=None):
     return render(request, 'home_timeline.html', context)
 
 
-def loaded_home_timeline(request):
-    # object_list = request.session['loaded_posts']
-    object_list = ""
-    p = Paginator(object_list, 4)
-    # p = Paginator(Post.objects.all().order_by('-post_datetime'), 4)
-    page = request.GET.get('page')
-    objects = p.get_page(page)
-    a = 200
-    print(objects)
-    try:
+def ajax_replies(request, pk):
+    form = PostImageForm()
+    imageform = ImageForm()
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        is_ajax = True
+        print("OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO")
+    post_data = return_post_data(request, pk)
 
-        last_viewed = request.session['post_in_view']
-    except:
-        last_viewed = ""
-    image_list = ImageFiles.objects.all()
-    profiles = Profile.objects.all()
-    has_images_to_show = False
+    replying_to = []
+    # replying_to = Post.objects.get(id=pk)
+    replying_to = get_parent_post(pk, replying_to)
+    replying_to = replying_to[::-1]
+
+    replies_obj = []
+    replies_to_post = []
+
+    replies = Replies.objects.filter(reply_to=pk)
+
+    if replies:
+        print("REPLIES", replies)
+        for reply in replies:
+            reply_post = Post.objects.get(id=reply.post_id)
+            replies_obj.append(reply_post)
+        replies_to_post = replies_obj[::-1]
 
     context = {
-        'object_list': object_list,
-        'image_list': image_list,
-        'objects': objects,
-        'last_viewed': last_viewed,
-        'has_images_to_show': has_images_to_show,
-        'profiles': profiles,
+        'form': form,
+        'replying_to': replying_to,
+        'imageform': imageform,
+        'replies_to_post': replies_to_post,
     }
-    return render(request, 'loaded_home_timeline.html', context)
+
+    context.update(post_data)
+    print(context)
+
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        is_ajax = True
+        print("OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO")
+    return render(request, 'ajax_replies.html', context)
+    # return render(request, 'testt.html', {'a': "a"})
+
+
+def save_ajax_reply(request):
+    if request.method == "POST":
+        print("REQUESTED USER: ", request.user)
+        form = PostImageForm(request.POST)
+        id = int(request.POST.get('postid'))
+
+        print(request.POST)
+        print(request.POST['title'])
+        instance = Post.objects.create(title=request.POST['title'],
+                                       body=request.POST['body'],
+                                       category=request.POST['category'],
+                                       author=request.user,
+                                       reply_to=id,
+                                       is_reply=True
+                                       )
+
+        reply = Replies(reply_to=id, post_id=instance.id)
+        reply.save()
+
+        context = return_post_data(request, id)
+        print(context['replies'])
+        print("THIS IS CONTEXT: ", context)
+        html = render_to_string('replies_list.html', context, request=request)
+        is_ajax = False
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            is_ajax = True
+        else:
+            is_ajax = False
+            print("OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO")
+        return JsonResponse({'replies_list': html, 'is_ajax': is_ajax})
+
+        # return JsonResponse({"instance": "success!!"})
 
 
 def post_details(request, post_id):
@@ -131,9 +186,6 @@ def post_details(request, post_id):
     post = Post.objects.get(id=post_id)
     image_list = ImageFiles.objects.all()
 
-    request.session['post_in_view'] = post_id
-
-    request.session.modified = True
     last_viewed = request.session['post_in_view']
 
     replies_obj = []

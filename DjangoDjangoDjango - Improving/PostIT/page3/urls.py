@@ -7,7 +7,9 @@ urlpatterns = [
     #     path('', views.home, name='home-page'),
     path('', views.home_timeline, name='home-page'),
     path('', views.home_timeline, name='expanded-post-page'),
-    path('home/', views.loaded_home_timeline, name='loaded-home-timeline'),
+    path('ajax-reply/<int:pk>', views.ajax_replies, name='ajax-replies'),
+    path('save_ajax_reply', views.save_ajax_reply, name='save_ajax_reply'),
+
     path('post/<int:post_id>', views.post_details, name='post-page'),
     path('add_post', views.add_post, name='add-post'),
     path('add_image_post', views.add_image_post, name="add-image-post"),

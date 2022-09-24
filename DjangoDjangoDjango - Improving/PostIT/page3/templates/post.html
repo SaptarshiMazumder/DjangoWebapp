@@ -11,7 +11,6 @@ Page3 - {{ post.title }}
 
 
 <body onpageshow="myfunction()">
-    <a href="{% url 'loaded-home-timeline' %}"></a>
     Currently Viewing: {{ last_viewed }}
     {% if parents_arr %}
     {% for parent in parents_arr %}
