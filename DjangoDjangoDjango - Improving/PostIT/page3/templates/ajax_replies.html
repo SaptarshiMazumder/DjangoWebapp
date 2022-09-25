@@ -22,10 +22,50 @@ Replying to
 {% for parent in replying_to %}
 {{ parent.author}}<br />
 {{ parent.body|safe }}
-<br /><br />
 {% endfor %}
 {% endif %}
-AAAAAAAAAAAAAAAAAA
+<hr />
+
+{% if user.is_authenticated %}
+{% if user.id == post.author.id %}
+<h1>{{ post.title }}</h1><a href="{% url 'edit-post' post.pk %}">Edit</a><br />
+{% endif %}
+{% endif %}
+
+
+<small>{{ post.author.first_name }} {{ post.author.last_name }}
+    {{ post.post_date}}</small><br />
+<hr>
+
+{% if post.has_images %}
+
+{% for image in image_list %}
+{% if image.post.id == post.id %}
+<img src="{{ image.image.url}}" width="500">
+{% endif %}
+{% endfor %}
+{{ post.imagefiles}}
+{% endif %}
+
+{% if post.video %}
+<video width="500" controls autoplay>
+    <source src="{{post.video.url}}" type="video/mp4">
+</video>
+
+{% endif %}
+<br />
+{% if user.is_authenticated %}
+
+<!-- <span id="like_count" type="hidden">{{ post.like_count}}</span> -->
+<button id="like-button" class="like-button" name="{{ post.like_count }}" value="{{ post.pk }}">LIKED BY
+    {{post.like_count}}</button>
+<a href="{% url 'add-reply' post.pk %}">Text Reply</a>
+<a href="{% url 'add-image-reply' post.pk %}">Image Reply</a>
+<a href="{% url 'add-video-reply' post.pk %}">Video Reply</a>
+
+
+{% endif %}
+
 <form action="" id="ajaxReply" value="{{post.pk}}" method="POST" enctype="multipart/form-data">
     {% csrf_token %}
     {% for hidden in form.hidden_fields %}
@@ -45,91 +85,14 @@ AAAAAAAAAAAAAAAAAA
 </form>
 
 
-{% if user.is_authenticated %}
-{% if user.id == post.author.id %}
-<h1>{{ post.title }}</h1><a href="{% url 'edit-post' post.pk %}">Edit</a><br />
-{% endif %}
-{% endif %}
-<small>{{ post.author.first_name }} {{ post.author.last_name }}
-    {{ post.post_date}}</small><br />
-<hr>
-<p>{{ post.body|safe }}</p>
-
-<!-- {% if post.has_images %}
-UOUI
-{% for image in image_list %}
-{% if image.post.id == post.id %}
-<img src="{{ image.image.url}}" width="500">
-{% endif %}
-{% endfor %}
-{{ post.imagefiles}}
-{% endif %}
-
-{% if post.video %}
-<video width="500" controls autoplay>
-    <source src="{{post.video.url}}" type="video/mp4">
-</video>
-
-{% endif %} -->
-<br />
-{% if user.is_authenticated %}
-
-<!-- <span id="like_count" type="hidden">{{ post.like_count}}</span> -->
-<button id="like-button" class="like-button" name="{{ post.like_count }}" value="{{ post.pk }}">LIKED BY
-    {{post.like_count}}</button>
-<a href="{% url 'add-reply' post.pk %}">Text Reply</a>
-<a href="{% url 'add-image-reply' post.pk %}">Image Reply</a>
-<a href="{% url 'add-video-reply' post.pk %}">Video Reply</a>
 
 
-{% endif %}
-<h3>Replies</h3>
-<!-- Replies section start -->
-<br /><br /><br />
 
-{% if replies_to_post %}
-
-
-{% for reply in replies_to_post %}
-<a href="{% url 'post-page' reply.pk %}">{{ reply.title }} </a>
-{{ reply.author}}
-<br />
-{{ reply.body|safe}}
-
-<br />
-
-<!-- {% if reply.has_images %}
-UOUI
-{% for image in image_list %}
-{% if image.post.id == reply.id %}
-<img src="{{ image.image.url}}" width="500">
-{% endif %}
-{% endfor %}
-{{ reply.imagefiles}}
-{% endif %} -->
-<!-- 
-{% if reply.video %}
-<video width="500" controls autoplay>
-    <source src="{{reply.video.url}}" type="video/mp4">
-</video>
-
-{% endif %} -->
-
-
-<button id="like-button" class="like-button" name="{{ reply.like_count }}" value="{{ reply.pk }}">LIKED BY
-    {{reply.like_count}}</button>
-
-<a href="{% url 'add-reply' reply.pk %}">Text Reply</a>
-<a href="{% url 'add-image-reply' reply.pk %}">Image Reply</a>
-<a href="{% url 'add-video-reply' reply.pk %}">Video Reply</a>
-
-<hr>
-{% endfor %}
-{% endif %}
-
-<div class="replies-section">
+<div id="replies-section">
     {% include 'replies_list.html' %}
 </div>
+
+
 
 <button onclick="history.go(-1)">Back</button>
 <!-- <a href="{% url 'home-page'  %}">Back</a> -->
@@ -225,6 +188,8 @@ UOUI
 </script>
 
 <script>
+
+
     $(document).on('click', '#ajaxReply', function (e) {
         e.preventDefault();
         var this_ = $(this)
@@ -250,9 +215,11 @@ UOUI
                 action: 'post',
             },
             success: function (json) {
-                console.log(json['is_ajax'])
-                console.log(json)
-                $('.replies-section').html(json['replies_list'])
+                console.log(json['replies_list'])
+                //console.log(json)
+                //deleteChild();
+                $("#replies-section").html(json['replies_list']);
+                //$('.replies-section').html(json['replies_list'])
             },
             error: function (xhr, errmsg, err) {
 

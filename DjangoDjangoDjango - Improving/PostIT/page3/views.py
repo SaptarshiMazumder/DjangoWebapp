@@ -169,16 +169,45 @@ def save_ajax_reply(request):
         context = return_post_data(request, id)
         print(context['replies'])
         print("THIS IS CONTEXT: ", context)
-        html = render_to_string('replies_list.html', context, request=request)
+        # html = render_to_string('replies_list.html', context, request=request)
         is_ajax = False
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             is_ajax = True
         else:
             is_ajax = False
-            print("OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO")
-        return JsonResponse({'replies_list': html, 'is_ajax': is_ajax})
+
+        # html = update_replies_list(request, id)
+        return(update_replies_list(request, id))
+
+        # return JsonResponse({'replies_list': "", 'is_ajax': is_ajax})
 
         # return JsonResponse({"instance": "success!!"})
+
+
+def update_replies_list(request, post_id):
+    replies_obj = []
+    replies_to_post = []
+
+    replies = Replies.objects.filter(reply_to=post_id)
+    if replies:
+        print("REPLIES", replies)
+        for reply in replies:
+            reply_post = Post.objects.get(id=reply.post_id)
+            replies_obj.append(reply_post)
+        replies_to_post = replies_obj[::-1]
+        image_list = ImageFiles.objects.all()
+
+        context = {
+            'replies': replies,
+            'replies_obj': replies_obj,
+            'replies_to_post': replies_to_post,
+            'image_list': image_list,
+
+        }
+
+        html = render_to_string('replies_list.html', context, request=request)
+        print("HTML: ", html)
+        return JsonResponse({'replies_list': html, })
 
 
 def post_details(request, post_id):
