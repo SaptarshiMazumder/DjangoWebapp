@@ -1,1 +1,47 @@
-ggg
+<html>
+
+    <head>
+        <title> Django image and file upload using ajax </title>
+    </head>
+
+    <body>
+        <div id="message">replace me</div>
+        <form enctype="multipart/form-data" id="id_ajax_upload_form" method="POST" novalidate="">
+            {% csrf_token %}
+            {% for field in form %}
+            {{ field }}<br />
+            {% endfor %}
+
+            {{ imageform.management_form }}
+
+            {% for field in imageform %}
+            {{ field }}
+            {% endfor %}
+            <input type="submit" />
+        </form>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+        <script type="text/javascript">
+            // form upload
+            $('#id_ajax_upload_form').submit(function (e) {
+                e.preventDefault();
+                $form = $(this)
+                var formData = new FormData(this);
+                $.ajax({
+                    url: window.location.pathname,
+                    type: 'POST',
+                    data: formData,
+                    success: function (response) {
+                        alert("JKJJK")
+                        messageDiv = document.getElementById("message")
+                        messageDiv.innerHTML = response['message']
+                    },
+                    cache: false,
+                    contentType: false,
+                    processData: false
+                });
+            });
+    // end
+        </script>
+    </body>
+
+</html>

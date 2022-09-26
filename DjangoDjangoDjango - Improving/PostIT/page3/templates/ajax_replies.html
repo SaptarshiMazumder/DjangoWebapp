@@ -190,7 +190,7 @@ Replying to
 <script>
 
 
-    $(document).on('click', '#ajaxReply', function (e) {
+    $(document).on('submit', '#ajaxReply', function (e) {
         e.preventDefault();
         var this_ = $(this)
         postid = this_.attr("value").valueOf()

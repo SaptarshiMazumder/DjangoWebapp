@@ -9,6 +9,8 @@ urlpatterns = [
     path('', views.home_timeline, name='expanded-post-page'),
     path('ajax-reply/<int:pk>', views.ajax_replies, name='ajax-replies'),
     path('save_ajax_reply', views.save_ajax_reply, name='save_ajax_reply'),
+    path('django_image_and_file_upload_ajax/<int:pk>',
+         views.django_image_and_file_upload_ajax, name='django_image_and_file_upload_ajax'),
 
     path('post/<int:post_id>', views.post_details, name='post-page'),
     path('add_post', views.add_post, name='add-post'),

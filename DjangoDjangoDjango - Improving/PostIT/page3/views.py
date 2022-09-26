@@ -105,6 +105,47 @@ def home_timeline(request, post_id=None):
     return render(request, 'home_timeline.html', context)
 
 
+def django_image_and_file_upload_ajax(request, pk):
+    form = PostImageForm()
+    imageform = ImageForm()
+    context = {
+        'form': form
+    }
+    if request.method == 'POST':
+
+        form = PostImageForm(request.POST)
+        files = request.FILES.getlist("image")
+        if form.is_valid():
+
+            instance = form.save(commit=False)
+            instance.author = request.user
+            instance.reply_to = pk
+            instance.is_reply = True
+            if files:
+                instance.has_images = True
+            else:
+                instance.has_images = False
+            instance.save()
+
+            for file in files:
+                ImageFiles.objects.create(post=instance, image=file)
+
+            reply = Replies(reply_to=pk, post_id=instance.id)
+            reply.save()
+
+            return JsonResponse({'error': False, 'message': 'Uploaded Successfully'})
+        else:
+            return JsonResponse({'error': True, 'errors': form.errors})
+    else:
+        form = PostImageForm()
+        imageform = ImageForm()
+        context = {
+            'form': form,
+            'imageform': imageform
+        }
+        return render(request, 'testt.html', context)
+
+
 def ajax_replies(request, pk):
     form = PostImageForm()
     imageform = ImageForm()
@@ -140,9 +181,6 @@ def ajax_replies(request, pk):
     context.update(post_data)
     print(context)
 
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        is_ajax = True
-        print("OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO")
     return render(request, 'ajax_replies.html', context)
     # return render(request, 'testt.html', {'a': "a"})
 
