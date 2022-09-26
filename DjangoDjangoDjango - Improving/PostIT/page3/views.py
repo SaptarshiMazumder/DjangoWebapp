@@ -108,9 +108,36 @@ def home_timeline(request, post_id=None):
 def django_image_and_file_upload_ajax(request, pk):
     form = PostImageForm()
     imageform = ImageForm()
+
+    post_data = return_post_data(request, pk)
+
+    replying_to = []
+    # replying_to = Post.objects.get(id=pk)
+    replying_to = get_parent_post(pk, replying_to)
+    replying_to = replying_to[::-1]
+
+    replies_obj = []
+    replies_to_post = []
+
+    replies = Replies.objects.filter(reply_to=pk)
+
+    if replies:
+        print("REPLIES", replies)
+        for reply in replies:
+            reply_post = Post.objects.get(id=reply.post_id)
+            replies_obj.append(reply_post)
+        replies_to_post = replies_obj[::-1]
+
     context = {
-        'form': form
+        'form': form,
+        'replying_to': replying_to,
+        'imageform': imageform,
+        'replies_to_post': replies_to_post,
     }
+
+    context.update(post_data)
+    print(context)
+
     if request.method == 'POST':
 
         form = PostImageForm(request.POST)
@@ -133,25 +160,21 @@ def django_image_and_file_upload_ajax(request, pk):
             reply = Replies(reply_to=pk, post_id=instance.id)
             reply.save()
 
-            return JsonResponse({'error': False, 'message': 'Uploaded Successfully'})
+            return(update_replies_list(request, id))
+            # return JsonResponse({'error': False, 'message': 'Uploaded Successfully'})
         else:
             return JsonResponse({'error': True, 'errors': form.errors})
     else:
         form = PostImageForm()
         imageform = ImageForm()
-        context = {
-            'form': form,
-            'imageform': imageform
-        }
-        return render(request, 'testt.html', context)
+
+    return render(request, 'testt.html', context)
 
 
 def ajax_replies(request, pk):
     form = PostImageForm()
     imageform = ImageForm()
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        is_ajax = True
-        print("OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO")
+
     post_data = return_post_data(request, pk)
 
     replying_to = []
