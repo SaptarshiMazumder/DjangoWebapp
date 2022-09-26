@@ -160,7 +160,7 @@ def django_image_and_file_upload_ajax(request, pk):
             reply = Replies(reply_to=pk, post_id=instance.id)
             reply.save()
 
-            return(update_replies_list(request, id))
+            return(update_replies_list(request, pk))
             # return JsonResponse({'error': False, 'message': 'Uploaded Successfully'})
         else:
             return JsonResponse({'error': True, 'errors': form.errors})

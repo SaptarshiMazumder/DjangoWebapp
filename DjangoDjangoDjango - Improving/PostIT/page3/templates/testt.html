@@ -172,9 +172,8 @@ Page3 - Add reply
             type: 'POST',
             data: formData,
             success: function (response) {
-                alert("JKJJK")
-                messageDiv = document.getElementById("message")
-                messageDiv.innerHTML = response['message']
+                //alert("JKJJK")
+                $("#replies-section").html(response['replies_list']);
             },
             cache: false,
             contentType: false,
