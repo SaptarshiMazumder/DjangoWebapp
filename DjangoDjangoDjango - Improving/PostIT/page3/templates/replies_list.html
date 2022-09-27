@@ -25,6 +25,14 @@
 
 <br />
 
+{% if reply.video %}
+<video width="500" controls autoplay>
+
+    <source src="{{reply.video.url}}" type="video/mp4">
+</video>
+
+{% endif %}
+
 {% if reply.has_images %}
 
 {% for image in image_list %}
@@ -35,6 +43,8 @@
 
 
 {% endif %}
+
+
 <button id="like-button" class="like-button" name="{{ reply.like_count }}" value="{{ reply.pk }}">LIKED BY
     {{reply.like_count}}</button>
 

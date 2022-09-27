@@ -3,7 +3,7 @@ from dataclasses import fields
 from email.mime import image
 from django.forms import ModelForm
 from matplotlib import widgets
-from .models import Post, Category, ImageFiles
+from .models import Post, Category, ImageFiles, GameProfile
 from django import forms
 
 
@@ -96,3 +96,21 @@ class ImageForm(ModelForm):
     class Meta:
         model = ImageFiles
         fields = ("image",)
+
+
+class GameProfileForm(ModelForm):
+    class Meta:
+        model = GameProfile
+        # fields = '__all__'
+        fields = ('game', 'server', 'rank')
+        # widgets = {
+        #     'game': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Valorant'}),
+        #     # 'author': forms.TextInput(attrs={'class': 'form-control', 'value': '', 'id': 'author-name', 'type': 'hidden'}),
+        #     # 'author': forms.Select(attrs={'class': 'form-control'}),
+        #     'category': forms.Select(choices=choice_list, attrs={'class': 'form-control'}),
+        #     'body': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Write something here...'})
+        # }
+class MatchmakingForm(ModelForm):
+    class Meta:
+        model=GameProfile
+        fields = ('game', 'server', 'rank')

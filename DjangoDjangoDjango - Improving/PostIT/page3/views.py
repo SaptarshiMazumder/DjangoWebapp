@@ -8,6 +8,7 @@ from multiprocessing import reduction
 from operator import is_
 import os
 import re
+from telnetlib import GA
 from tkinter import Image
 from turtle import pos, title
 from unittest import result
@@ -16,8 +17,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, JsonResponse, HttpResponseNotAllowed
 from django.views.generic import ListView, DetailView
 from matplotlib.style import context
-from . models import Post, Replies, ImageFiles, Profile
-from . forms import EditPostForm, EditVideoPostForm, ImageForm, PostForm, PostImageForm, PostVideoForm, EditImagePostForm
+from . models import GameProfile, Post, Replies, ImageFiles, Profile
+from . forms import EditPostForm, EditVideoPostForm, ImageForm, PostForm, PostImageForm, PostVideoForm, EditImagePostForm, GameProfileForm, MatchmakingForm
 from django.http import HttpResponseRedirect
 from django.urls import reverse, reverse_lazy
 from django.contrib.auth.decorators import login_required
@@ -26,7 +27,7 @@ from django.template.loader import render_to_string
 # Create your views here.
 # Paginator stuff
 from django.core.paginator import Paginator
-
+from django.contrib.auth.models import User
 
 from .serializers import PostSerializer
 from django.core import serializers
@@ -59,6 +60,7 @@ def home(request):
 def home_timeline(request, post_id=None):
 
     object_list = Post.objects.all().order_by('-post_datetime')
+    game_profiles = GameProfile.objects.all()
     try:
         print(request.session['post_in_view'])
     except:
@@ -101,12 +103,15 @@ def home_timeline(request, post_id=None):
             'last_viewed': last_viewed,
             'has_images_to_show': has_images_to_show,
             'profiles': profiles,
+            'game_profiles': game_profiles,
         }
     return render(request, 'home_timeline.html', context)
 
 
+@csrf_exempt
 def django_image_and_file_upload_ajax(request, pk):
-    form = PostImageForm()
+    form1 = PostImageForm()
+    form2 = PostVideoForm()
     imageform = ImageForm()
 
     post_data = return_post_data(request, pk)
@@ -129,7 +134,8 @@ def django_image_and_file_upload_ajax(request, pk):
         replies_to_post = replies_obj[::-1]
 
     context = {
-        'form': form,
+        'form1': form1,
+        'form2': form2,
         'replying_to': replying_to,
         'imageform': imageform,
         'replies_to_post': replies_to_post,
@@ -140,32 +146,64 @@ def django_image_and_file_upload_ajax(request, pk):
 
     if request.method == 'POST':
 
-        form = PostImageForm(request.POST)
+        form1 = PostImageForm(request.POST, request.FILES)
+        form2 = PostVideoForm(request.POST, request.FILES)
         files = request.FILES.getlist("image")
-        if form.is_valid():
+        files2 = request.FILES.getlist("video")
+        print("FILES2 UPLOADED: ", files2)
+        if files2:
+            print("FILES 2 IS NOT NONE")
+            form1 = PostVideoForm(request.POST, request.FILES)
+        if form1.is_valid():
+            print("FORM1 VALID")
 
-            instance = form.save(commit=False)
+            instance = form1.save(commit=False)
             instance.author = request.user
             instance.reply_to = pk
             instance.is_reply = True
+            print("INSTANCE: ", instance)
             if files:
                 instance.has_images = True
             else:
                 instance.has_images = False
+
+            if files2:
+                instance.has_video = True
+            else:
+                instance.has_video = False
+
             instance.save()
 
             for file in files:
                 ImageFiles.objects.create(post=instance, image=file)
+
+            for file in files2:
+                print("VIDEO FILE: ", file)
 
             reply = Replies(reply_to=pk, post_id=instance.id)
             reply.save()
 
             return(update_replies_list(request, pk))
             # return JsonResponse({'error': False, 'message': 'Uploaded Successfully'})
+
+        if form2.is_valid():
+            print("FORM2 VALID")
+            instance = form2.save(commit=False)
+            instance.author = request.user
+            instance.reply_to = pk
+            instance.is_reply = True
+            if request.FILES:
+                instance.has_video = True
+            instance.save()
+
+            reply = Replies(reply_to=pk, post_id=instance.id)
+            reply.save()
+            return(update_replies_list(request, pk))
         else:
-            return JsonResponse({'error': True, 'errors': form.errors})
+            return JsonResponse({'error': True, 'errors': form1.errors})
     else:
-        form = PostImageForm()
+        form1 = PostImageForm()
+        form2 = PostVideoForm()
         imageform = ImageForm()
 
     return render(request, 'testt.html', context)
@@ -267,7 +305,7 @@ def update_replies_list(request, post_id):
         }
 
         html = render_to_string('replies_list.html', context, request=request)
-        print("HTML: ", html)
+        # print("HTML: ", html)
         return JsonResponse({'replies_list': html, })
 
 
@@ -275,8 +313,6 @@ def post_details(request, post_id):
     print('*********************************************************************')
     post = Post.objects.get(id=post_id)
     image_list = ImageFiles.objects.all()
-
-    last_viewed = request.session['post_in_view']
 
     replies_obj = []
     replies_to_post = []
@@ -308,7 +344,6 @@ def post_details(request, post_id):
         'replies_to_post': replies_to_post,
         'parents_arr': parents_arr,
         'image_list': image_list,
-        'last_viewed': last_viewed,
 
     }
 
@@ -970,3 +1005,51 @@ def deletePost(request, pk):
     post = Post.objects.get(id=pk)
     post.delete()
     return Response('Post was deleted!')
+
+
+def posts_by_user(request, user):
+    user = User.objects.get(username=user)
+    posts = Post.objects.filter(author=user)
+    context = {'posts': posts}
+    return render(request, 'posts_by_user.html', context)
+
+
+def create_game_profile(request, user):
+    form = GameProfileForm()
+
+    if(user != 'favicon.png'):
+        user = User.objects.get(username=user)
+        print(user.username)
+        if(GameProfile.objects.filter(user=user.id)):
+            print("Profile already exists")
+            return render(request, 'create_gamer_profile.html', context={'form': form})
+        elif(request.method == 'POST'):
+            form = GameProfileForm(request.POST)
+            if(form.is_valid):
+                print(request.POST)
+                new_profile = GameProfile(user=user, game=request.POST['game'],
+                                          server=request.POST['server'], rank=request.POST['rank'])
+                new_profile.save()
+                context = {'form': form, 'profile': new_profile}
+                return render(request, 'create_gamer_profile.html', context)
+
+    return render(request, 'create_gamer_profile.html', context={'form': form})
+
+
+def MatchmakingHome(request, user):
+    form = GameProfileForm()
+    print(user)
+    context = {'form': form}
+
+    if request.method == 'POST':
+        pref_game = request.POST['game']
+        pref_server = request.POST['server']
+        rank = request.POST['rank']
+        user_profiles = []
+        game_profiles = GameProfile.objects.filter(game=pref_game)
+        for g in game_profiles:
+            this_user = User.objects.get(username=g.user).id
+            user_profiles.append(Profile.objects.filter(user=int(this_user)))
+        context = {'form': form,
+                   'game_profiles': (game_profiles,  user_profiles)}
+    return render(request, 'matchmaking.html', context)

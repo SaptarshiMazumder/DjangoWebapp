@@ -47,4 +47,9 @@ urlpatterns = [
     path('getPosts/<int:pk>', views.getPost, name='get-post-rest'),
     path('getPosts/<int:pk>/update', views.updatePost, name='update-post-rest'),
     path('getPosts/<int:pk>/delete', views.deletePost, name='delete-post-rest'),
+
+
+    path('posts/<str:user>', views.posts_by_user, name="posts-by-user"),
+    path('create_gamer_profile/<str:user>', views.create_game_profile, name="create-gamer-profile"),
+    path('matchmaking/<str:user>', views.MatchmakingHome, name="matchmaking-home"),
 ]

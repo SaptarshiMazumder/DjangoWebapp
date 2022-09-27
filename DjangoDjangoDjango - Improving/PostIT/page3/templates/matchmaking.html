@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block title %}
+Create Gamer Profile
+{% endblock title %}
+
+{% block content %}
+{% load crispy_forms_tags %}
+{% if user.is_authenticated %}
+<form action="" method="POST" enctype="multipart/form-data">
+    <h1>Start Matchmaking</h1>
+    {% csrf_token %}
+    <p>Enter Preferred Game</p>
+    {{form.game}}
+    <hr />
+    <p>Enter Preferred Server</p>
+    {{form.server}}
+    <hr />
+    <p>Enter Preferred Rank to pair with</p>
+    {{form.rank}}
+
+    {{user.username}}
+    <button type="submit">Create</button>
+</form>
+{{game_profiles}}
+
+{%if game_profiles%}
+    <div class="gamer_profiles">
+        {%for g in game_profiles%}
+        <div>{{g.user}}</div>
+        <div>{{g.game}}</div>
+        <div>{{g.rank}}</div>
+        <hr>
+        {%endfor%}
+    </div>
+{%endif%}
+
+{% else %}
+Login first!
+{% endif %}
+{% endblock content %}
