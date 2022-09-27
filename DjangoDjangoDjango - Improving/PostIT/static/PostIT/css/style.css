@@ -100,7 +100,16 @@ body {
     text-decoration: none;
 }
 
+<<<<<<< Updated upstream
 .dropdown-content a:hover {
     color: #FFFFFF;
     background-color: #00A4BD;
+=======
+h2::-webkit-scrollbar {
+    display: none;
+}
+
+.vid-form {
+    display: none !important;
+>>>>>>> Stashed changes
 }

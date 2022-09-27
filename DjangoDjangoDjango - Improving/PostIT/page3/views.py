@@ -61,11 +61,7 @@ def home_timeline(request, post_id=None):
     objects = p.get_page(page)
     a = 200
     print(objects)
-    try:
 
-        last_viewed = request.session['post_in_view']
-    except:
-        last_viewed = ""
     image_list = ImageFiles.objects.all()
     has_images_to_show = False
     try:
@@ -77,7 +73,6 @@ def home_timeline(request, post_id=None):
             'post_id': post_id,
             'objects': objects,
             'objects': objects,
-            'last_viewed': last_viewed,
             'has_images_to_show': has_images_to_show,
         }
     except:
@@ -85,10 +80,204 @@ def home_timeline(request, post_id=None):
             'object_list': object_list,
             'image_list': image_list,
             'objects': objects,
-            'last_viewed': last_viewed,
             'has_images_to_show': has_images_to_show,
         }
     return render(request, 'home_timeline.html', context)
+
+
+@csrf_exempt
+def django_image_and_file_upload_ajax(request, pk):
+    form1 = PostImageForm()
+    form2 = PostVideoForm()
+    imageform = ImageForm()
+
+    post_data = return_post_data(request, pk)
+
+    replying_to = []
+    # replying_to = Post.objects.get(id=pk)
+    replying_to = get_parent_post(pk, replying_to)
+    replying_to = replying_to[::-1]
+
+    replies_obj = []
+    replies_to_post = []
+
+    replies = Replies.objects.filter(reply_to=pk)
+
+    if replies:
+        print("REPLIES", replies)
+        for reply in replies:
+            reply_post = Post.objects.get(id=reply.post_id)
+            replies_obj.append(reply_post)
+        replies_to_post = replies_obj[::-1]
+
+    context = {
+        'form1': form1,
+        'form2': form2,
+        'replying_to': replying_to,
+        'imageform': imageform,
+        'replies_to_post': replies_to_post,
+    }
+
+    context.update(post_data)
+    print(context)
+
+    if request.method == 'POST':
+
+        form1 = PostImageForm(request.POST)
+        form2 = PostVideoForm(request.POST)
+        files = request.FILES.getlist("image")
+        files2 = request.FILES.getlist("video")
+        print("FILES UPLOADED: ", files2)
+        if form1.is_valid():
+
+            instance = form1.save(commit=False)
+            instance.author = request.user
+            instance.reply_to = pk
+            instance.is_reply = True
+            if files:
+                instance.has_images = True
+            else:
+                instance.has_images = False
+
+            if files2:
+                instance.has_video = True
+            else:
+                instance.has_video = False
+
+            instance.save()
+
+            for file in files:
+                ImageFiles.objects.create(post=instance, image=file)
+
+            for file in files2:
+                print("VIDEO FILE: ", file)
+
+            reply = Replies(reply_to=pk, post_id=instance.id)
+            reply.save()
+
+            return(update_replies_list(request, pk))
+            # return JsonResponse({'error': False, 'message': 'Uploaded Successfully'})
+
+        if form2.is_valid():
+            instance = form2.save(commit=False)
+            instance.author = request.user
+            instance.reply_to = pk
+            instance.is_reply = True
+            if request.FILES:
+                instance.has_video = True
+            instance.save()
+
+            reply = Replies(reply_to=pk, post_id=instance.id)
+            reply.save()
+            return(update_replies_list(request, pk))
+        else:
+            return JsonResponse({'error': True, 'errors': form1.errors})
+    else:
+        form1 = PostImageForm()
+        form2 = PostVideoForm()
+        imageform = ImageForm()
+
+    return render(request, 'testt.html', context)
+
+
+def ajax_replies(request, pk):
+    form = PostImageForm()
+    imageform = ImageForm()
+
+    post_data = return_post_data(request, pk)
+
+    replying_to = []
+    # replying_to = Post.objects.get(id=pk)
+    replying_to = get_parent_post(pk, replying_to)
+    replying_to = replying_to[::-1]
+
+    replies_obj = []
+    replies_to_post = []
+
+    replies = Replies.objects.filter(reply_to=pk)
+
+    if replies:
+        print("REPLIES", replies)
+        for reply in replies:
+            reply_post = Post.objects.get(id=reply.post_id)
+            replies_obj.append(reply_post)
+        replies_to_post = replies_obj[::-1]
+
+    context = {
+        'form': form,
+        'replying_to': replying_to,
+        'imageform': imageform,
+        'replies_to_post': replies_to_post,
+    }
+
+    context.update(post_data)
+    print(context)
+
+    return render(request, 'ajax_replies.html', context)
+    # return render(request, 'testt.html', {'a': "a"})
+
+
+def save_ajax_reply(request):
+    if request.method == "POST":
+        print("REQUESTED USER: ", request.user)
+        form = PostImageForm(request.POST)
+        id = int(request.POST.get('postid'))
+
+        print(request.POST)
+        print(request.POST['title'])
+        instance = Post.objects.create(title=request.POST['title'],
+                                       body=request.POST['body'],
+                                       category=request.POST['category'],
+                                       author=request.user,
+                                       reply_to=id,
+                                       is_reply=True
+                                       )
+
+        reply = Replies(reply_to=id, post_id=instance.id)
+        reply.save()
+
+        context = return_post_data(request, id)
+        print(context['replies'])
+        print("THIS IS CONTEXT: ", context)
+        # html = render_to_string('replies_list.html', context, request=request)
+        is_ajax = False
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            is_ajax = True
+        else:
+            is_ajax = False
+
+        # html = update_replies_list(request, id)
+        return(update_replies_list(request, id))
+
+        # return JsonResponse({'replies_list': "", 'is_ajax': is_ajax})
+
+        # return JsonResponse({"instance": "success!!"})
+
+
+def update_replies_list(request, post_id):
+    replies_obj = []
+    replies_to_post = []
+
+    replies = Replies.objects.filter(reply_to=post_id)
+    if replies:
+        print("REPLIES", replies)
+        for reply in replies:
+            reply_post = Post.objects.get(id=reply.post_id)
+            replies_obj.append(reply_post)
+        replies_to_post = replies_obj[::-1]
+        image_list = ImageFiles.objects.all()
+
+        context = {
+            'replies': replies,
+            'replies_obj': replies_obj,
+            'replies_to_post': replies_to_post,
+            'image_list': image_list,
+
+        }
+
+        html = render_to_string('replies_list.html', context, request=request)
+        # print("HTML: ", html)
+        return JsonResponse({'replies_list': html, })
 
 
 def post_details(request, post_id):
@@ -131,11 +320,50 @@ def post_details(request, post_id):
         'replies_to_post': replies_to_post,
         'parents_arr': parents_arr,
         'image_list': image_list,
-        'last_viewed': last_viewed,
 
     }
 
     return render(request, 'post.html', context)
+
+
+def return_post_data(request, post_id):
+    post = Post.objects.get(id=post_id)
+    image_list = ImageFiles.objects.all()
+
+    replies_obj = []
+    replies_to_post = []
+
+    replies = Replies.objects.filter(reply_to=post_id)
+
+    if replies:
+        print("REPLIES", replies)
+        for reply in replies:
+            reply_post = Post.objects.get(id=reply.post_id)
+            replies_obj.append(reply_post)
+        replies_to_post = replies_obj[::-1]
+    liked = False
+    if post.likes.filter(id=request.user.id).exists():
+        liked = True
+    total_likes = post.total_likes()
+    print("Working till here")
+    parents_arr = []
+    if post.is_reply:
+        parents_arr = get_parent_post(post.reply_to, parents_arr)
+        parents_arr = parents_arr[::-1]
+
+    context = {
+        'post': post,
+        'total_likes': total_likes,
+        'liked': liked,
+        'replies': replies,
+        'replies_obj': replies_obj,
+        'replies_to_post': replies_to_post,
+        'parents_arr': parents_arr,
+        'image_list': image_list,
+
+    }
+
+    return context
 
 
 def add_post(request):
@@ -521,7 +749,6 @@ def get_post_data(request):
         request.session['post_in_view'] = post_id
 
         request.session.modified = True
-        last_viewed = request.session['post_in_view']
 
         replies_obj = []
         replies_to_post = []
@@ -571,7 +798,6 @@ def get_post_data(request):
             'liked': liked,
             # 'replies_to_post': replies_to_post,
             'parents_arr': parents_arr,
-            'last_viewed': last_viewed,
             'post_images_url': post_images_url,
             'post_video_url': post_video_url,
             'like_count': like_count,
