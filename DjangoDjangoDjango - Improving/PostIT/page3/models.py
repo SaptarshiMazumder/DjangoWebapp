@@ -93,7 +93,8 @@ class Profile(models.Model):
 
 
 class ImageFiles(models.Model):
-    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+    post = models.ForeignKey(
+        Post, on_delete=models.CASCADE, null=True, blank=True)
     image = models.FileField(null=True, blank=True, upload_to='images/')
 
 

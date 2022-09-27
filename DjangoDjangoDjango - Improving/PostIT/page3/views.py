@@ -1,24 +1,28 @@
 
 
-from cgitb import reset
+from cgitb import html, reset
 from dataclasses import fields
 from email.mime import image
 from ftplib import all_errors
+from multiprocessing import reduction
 from operator import is_
 import os
+import re
 from tkinter import Image
-from turtle import pos
+from turtle import pos, title
 from unittest import result
+from urllib.request import Request
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, JsonResponse, HttpResponseNotAllowed
 from django.views.generic import ListView, DetailView
 from matplotlib.style import context
-from . models import Post, Replies, ImageFiles
+from . models import Post, Replies, ImageFiles, Profile
 from . forms import EditPostForm, EditVideoPostForm, ImageForm, PostForm, PostImageForm, PostVideoForm, EditImagePostForm
 from django.http import HttpResponseRedirect
 from django.urls import reverse, reverse_lazy
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
+from django.template.loader import render_to_string
 # Create your views here.
 # Paginator stuff
 from django.core.paginator import Paginator
@@ -36,6 +40,10 @@ from rest_framework.decorators import api_view
 #         'object_list': object_list
 #     }
 #     return render(request, 'home.html', context)
+
+
+def is_ajax(request):
+    return request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest'
 
 
 def home(request):
@@ -56,7 +64,9 @@ def home_timeline(request, post_id=None):
     except:
         pass
     # Set up pagination
-    p = Paginator(Post.objects.all().order_by('-post_datetime'), 4)
+    # request.session['loaded_posts'] = object_list
+    p = Paginator(object_list, 4)
+    # p = Paginator(Post.objects.all().order_by('-post_datetime'), 4)
     page = request.GET.get('page')
     objects = p.get_page(page)
     a = 200
@@ -67,9 +77,11 @@ def home_timeline(request, post_id=None):
     except:
         last_viewed = ""
     image_list = ImageFiles.objects.all()
+    profiles = Profile.objects.all()
     has_images_to_show = False
     try:
         post = Post.objects.get(id=post_id)
+        profile = Post.objects.get(user=post['author'])
         context = {
             'object_list': object_list,
             'image_list': image_list,
@@ -79,6 +91,7 @@ def home_timeline(request, post_id=None):
             'objects': objects,
             'last_viewed': last_viewed,
             'has_images_to_show': has_images_to_show,
+            'profile': profile,
         }
     except:
         context = {
@@ -87,8 +100,175 @@ def home_timeline(request, post_id=None):
             'objects': objects,
             'last_viewed': last_viewed,
             'has_images_to_show': has_images_to_show,
+            'profiles': profiles,
         }
     return render(request, 'home_timeline.html', context)
+
+
+def django_image_and_file_upload_ajax(request, pk):
+    form = PostImageForm()
+    imageform = ImageForm()
+
+    post_data = return_post_data(request, pk)
+
+    replying_to = []
+    # replying_to = Post.objects.get(id=pk)
+    replying_to = get_parent_post(pk, replying_to)
+    replying_to = replying_to[::-1]
+
+    replies_obj = []
+    replies_to_post = []
+
+    replies = Replies.objects.filter(reply_to=pk)
+
+    if replies:
+        print("REPLIES", replies)
+        for reply in replies:
+            reply_post = Post.objects.get(id=reply.post_id)
+            replies_obj.append(reply_post)
+        replies_to_post = replies_obj[::-1]
+
+    context = {
+        'form': form,
+        'replying_to': replying_to,
+        'imageform': imageform,
+        'replies_to_post': replies_to_post,
+    }
+
+    context.update(post_data)
+    print(context)
+
+    if request.method == 'POST':
+
+        form = PostImageForm(request.POST)
+        files = request.FILES.getlist("image")
+        if form.is_valid():
+
+            instance = form.save(commit=False)
+            instance.author = request.user
+            instance.reply_to = pk
+            instance.is_reply = True
+            if files:
+                instance.has_images = True
+            else:
+                instance.has_images = False
+            instance.save()
+
+            for file in files:
+                ImageFiles.objects.create(post=instance, image=file)
+
+            reply = Replies(reply_to=pk, post_id=instance.id)
+            reply.save()
+
+            return(update_replies_list(request, pk))
+            # return JsonResponse({'error': False, 'message': 'Uploaded Successfully'})
+        else:
+            return JsonResponse({'error': True, 'errors': form.errors})
+    else:
+        form = PostImageForm()
+        imageform = ImageForm()
+
+    return render(request, 'testt.html', context)
+
+
+def ajax_replies(request, pk):
+    form = PostImageForm()
+    imageform = ImageForm()
+
+    post_data = return_post_data(request, pk)
+
+    replying_to = []
+    # replying_to = Post.objects.get(id=pk)
+    replying_to = get_parent_post(pk, replying_to)
+    replying_to = replying_to[::-1]
+
+    replies_obj = []
+    replies_to_post = []
+
+    replies = Replies.objects.filter(reply_to=pk)
+
+    if replies:
+        print("REPLIES", replies)
+        for reply in replies:
+            reply_post = Post.objects.get(id=reply.post_id)
+            replies_obj.append(reply_post)
+        replies_to_post = replies_obj[::-1]
+
+    context = {
+        'form': form,
+        'replying_to': replying_to,
+        'imageform': imageform,
+        'replies_to_post': replies_to_post,
+    }
+
+    context.update(post_data)
+    print(context)
+
+    return render(request, 'ajax_replies.html', context)
+    # return render(request, 'testt.html', {'a': "a"})
+
+
+def save_ajax_reply(request):
+    if request.method == "POST":
+        print("REQUESTED USER: ", request.user)
+        form = PostImageForm(request.POST)
+        id = int(request.POST.get('postid'))
+
+        print(request.POST)
+        print(request.POST['title'])
+        instance = Post.objects.create(title=request.POST['title'],
+                                       body=request.POST['body'],
+                                       category=request.POST['category'],
+                                       author=request.user,
+                                       reply_to=id,
+                                       is_reply=True
+                                       )
+
+        reply = Replies(reply_to=id, post_id=instance.id)
+        reply.save()
+
+        context = return_post_data(request, id)
+        print(context['replies'])
+        print("THIS IS CONTEXT: ", context)
+        # html = render_to_string('replies_list.html', context, request=request)
+        is_ajax = False
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            is_ajax = True
+        else:
+            is_ajax = False
+
+        # html = update_replies_list(request, id)
+        return(update_replies_list(request, id))
+
+        # return JsonResponse({'replies_list': "", 'is_ajax': is_ajax})
+
+        # return JsonResponse({"instance": "success!!"})
+
+
+def update_replies_list(request, post_id):
+    replies_obj = []
+    replies_to_post = []
+
+    replies = Replies.objects.filter(reply_to=post_id)
+    if replies:
+        print("REPLIES", replies)
+        for reply in replies:
+            reply_post = Post.objects.get(id=reply.post_id)
+            replies_obj.append(reply_post)
+        replies_to_post = replies_obj[::-1]
+        image_list = ImageFiles.objects.all()
+
+        context = {
+            'replies': replies,
+            'replies_obj': replies_obj,
+            'replies_to_post': replies_to_post,
+            'image_list': image_list,
+
+        }
+
+        html = render_to_string('replies_list.html', context, request=request)
+        print("HTML: ", html)
+        return JsonResponse({'replies_list': html, })
 
 
 def post_details(request, post_id):
@@ -96,9 +276,6 @@ def post_details(request, post_id):
     post = Post.objects.get(id=post_id)
     image_list = ImageFiles.objects.all()
 
-    request.session['post_in_view'] = post_id
-
-    request.session.modified = True
     last_viewed = request.session['post_in_view']
 
     replies_obj = []
@@ -136,6 +313,47 @@ def post_details(request, post_id):
     }
 
     return render(request, 'post.html', context)
+
+
+def return_post_data(request, post_id):
+    post = Post.objects.get(id=post_id)
+    image_list = ImageFiles.objects.all()
+
+    replies_obj = []
+    replies_to_post = []
+
+    replies = Replies.objects.filter(reply_to=post_id)
+
+    if replies:
+        print("REPLIES", replies)
+        for reply in replies:
+            reply_post = Post.objects.get(id=reply.post_id)
+            replies_obj.append(reply_post)
+        replies_to_post = replies_obj[::-1]
+    liked = False
+    if post.likes.filter(id=request.user.id).exists():
+        liked = True
+    total_likes = post.total_likes()
+    print("Working till here")
+    parents_arr = []
+    if post.is_reply:
+        parents_arr = get_parent_post(post.reply_to, parents_arr)
+        parents_arr = parents_arr[::-1]
+
+    context = {
+        'post': post,
+        'total_likes': total_likes,
+        'liked': liked,
+        'replies': replies,
+        'replies_obj': replies_obj,
+        'replies_to_post': replies_to_post,
+        'parents_arr': parents_arr,
+        'image_list': image_list,
+        'last_viewed': "",
+
+    }
+
+    return context
 
 
 def add_post(request):
@@ -294,7 +512,9 @@ def add_image_reply(request, pk):
             reply = Replies(reply_to=pk, post_id=instance.id)
             reply.save()
 
-            return redirect(request.META.get('HTTP_REFERER'))
+            context = return_post_data(request, pk)
+            return render(request, 'post.html', context)
+            # return redirect(request.META.get('HTTP_REFERER'))
             # return redirect('home-page')
             # return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
         else:
@@ -320,6 +540,73 @@ def add_image_reply(request, pk):
     return render(request, 'add_image_reply.html', context)
 
 
+def replies_page(request, pk):
+    form = PostImageForm()
+    imageform = ImageForm()
+    post_data = return_post_data(request, pk)
+    context = {
+        'form': form
+    }
+
+    replying_to = []
+    # replying_to = Post.objects.get(id=pk)
+    replying_to = get_parent_post(pk, replying_to)
+    replying_to = replying_to[::-1]
+    context = {
+        'form': form,
+        'replying_to': replying_to,
+        'imageform': imageform
+    }
+
+    if request.method == 'POST':
+        print(request.POST)
+
+        form = PostImageForm(request.POST)
+        files = request.FILES.getlist("image")
+        if form.is_valid():
+            # form.save()
+            instance = form.save(commit=False)
+            instance.author = request.user
+            instance.reply_to = pk
+            instance.is_reply = True
+            if files:
+                instance.has_images = True
+            else:
+                instance.has_images = False
+            instance.save()
+
+            for file in files:
+                ImageFiles.objects.create(post=instance, image=file)
+
+            reply = Replies(reply_to=pk, post_id=instance.id)
+            reply.save()
+
+            context.update(post_data)
+            return redirect(request.META.get('HTTP_REFERER'))
+            # return render(request, 'replies.html', context)
+            # return render(request, 'post.html', post_data)
+            # return redirect(request.META.get('HTTP_REFERER'))
+            # return redirect('home-page')
+            # return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
+        else:
+            replying_to = []
+            replying_to = Post.objects.get(id=pk)
+            context = {
+                'form': form,
+                'replying_to': replying_to
+            }
+
+            context.update(post_data)
+            return render(request, 'replies.html', context)
+    else:
+        form = PostImageForm()
+        imageform = ImageForm()
+
+    context.update(post_data)
+    print(context)
+    return render(request, 'replies.html', context)
+
+
 def add_video_reply(request, pk):
     form = PostVideoForm()
     context = {
@@ -341,7 +628,9 @@ def add_video_reply(request, pk):
             reply = Replies(reply_to=pk, post_id=instance.id)
             reply.save()
 
-            return redirect('home-page')
+            context = return_post_data(request, pk)
+            return render(request, 'post.html', context)
+            # return redirect('home-page')
         else:
             replying_to = []
             replying_to = Post.objects.get(id=pk)
@@ -630,12 +919,8 @@ def category(request, cat):
     }
     return render(request, 'posts_by_category.html', context)
 
-# class HomeView(ListView):
-#     model = Post
-#     template_name = 'home.html'
-
-
 # REST API Views
+
 
 def home_view(request):
     return render(request, "api/home_view.html", status=200)
