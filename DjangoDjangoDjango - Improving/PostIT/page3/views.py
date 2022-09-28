@@ -148,6 +148,7 @@ def django_image_and_file_upload_ajax(request, pk):
 
         form1 = PostImageForm(request.POST, request.FILES)
         form2 = PostVideoForm(request.POST, request.FILES)
+        id = int(request.POST.get('postid'))
         files = request.FILES.getlist("image")
         files2 = request.FILES.getlist("video")
         print("FILES2 UPLOADED: ", files2)
@@ -158,8 +159,12 @@ def django_image_and_file_upload_ajax(request, pk):
             print("FORM1 VALID")
 
             instance = form1.save(commit=False)
+
+            print("POSTID: ", id)
+            print(type(pk))
+            print(type(id))
             instance.author = request.user
-            instance.reply_to = pk
+            instance.reply_to = id
             instance.is_reply = True
             print("INSTANCE: ", instance)
             if files:
@@ -181,7 +186,7 @@ def django_image_and_file_upload_ajax(request, pk):
                 print("VIDEO FILE: ", file)
 
             reply_to_post = Post.objects.get(id=pk)
-            reply = Replies(reply_to=pk, post_id=instance.id,
+            reply = Replies(reply_to=id, post_id=instance.id,
                             reply_to_post=reply_to_post)
             reply.save()
 
@@ -198,7 +203,8 @@ def django_image_and_file_upload_ajax(request, pk):
                 instance.has_video = True
             instance.save()
 
-            reply = Replies(reply_to=pk, post_id=instance.id)
+            reply = Replies(reply_to=id, post_id=instance.id,
+                            reply_to_post=reply_to_post)
             reply.save()
             return(update_replies_list(request, pk))
         else:

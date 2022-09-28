@@ -19,7 +19,7 @@
 
 {% for reply in replies_to_post %}
 <a href="{% url 'django_image_and_file_upload_ajax' reply.pk %}">{{ reply.title }} </a>
-{{ reply.author}} | {{reply.author.id}}<br />
+{{ reply.author}} | {{reply.pk}}<br />
 
 {% if user.id == reply.author.id %}
 <a href="{% url 'delete-post' reply.pk %}">Delete</a>
@@ -54,8 +54,11 @@
 
 
 <a href="{% url 'django_image_and_file_upload_ajax' reply.pk %}">Reply</a>
+<button id="open-reply-modal" value="{{reply.pk}}"> Click to open</button>
 
 <hr>
+
+
 {% endfor %}
 {% endif %}
 
@@ -151,6 +154,9 @@
 
 
 </script>
+
+<!-- <script src="{% static 'PostIT/js/replyModal.js' %}"></script> -->
+
 
 
 {% endblock content %}

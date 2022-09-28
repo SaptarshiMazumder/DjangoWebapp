@@ -26,9 +26,10 @@ Logged in as: {{user}} | {{user.id}}
 
 
 <small>{{ post.author.first_name }} {{ post.author.last_name }}
-    {{ post.post_date}}</small><br />
+    {{ post.post_date}} | {{post.pk}}</small><br />
 <hr>
-
+{{post.body}}
+<br />
 {% if post.has_images %}
 
 {% for image in image_list %}
@@ -54,30 +55,27 @@ Logged in as: {{user}} | {{user.id}}
 
 
 {% endif %}
-<div id="img-form">
-    <form enctype="multipart/form-data" id="id_ajax_upload_form" method="POST" novalidate="">
-        {% csrf_token %}
-        {% for field in form1 %}
-        {{ field }}<br />
-        {% endfor %}
 
-        {{ imageform.management_form }}
+<!-- Modal start -->
+<!-- <button id="open-reply-modal"> Click to open</button> -->
 
-        {% for field in imageform %}
-        {{ field }}
-        {% endfor %}
-        <input type="submit" />
-    </form>
+<div class="reply-modal-container" id="reply-modal-container">
+    <div class="modal-div">
+        <h1>reply to</h1>
+        {% include 'post_replies_form.html' %}
+        <button id="close-modal">CLose modal</button>
+    </div>
 </div>
 
-<div id="vid-form">
-    <form enctype="multipart/form-data" id="id_ajax_upload_form2" method="POST" novalidate="">
-        {% csrf_token %}
-        {{ form2.as_p }}
-        <input type="submit" />
-    </form>
-</div>
-<button id="toggle-media-type">Add video</button>
+<!-- Modal end -->
+
+
+
+
+<button id="open-reply-modal" value="{{post.pk}}"> Click to open</button>
+<!-- {% include 'post_replies_form.html' %} -->
+
+
 
 <div id="replies-section">
     {% include 'replies_list.html' %}
@@ -175,14 +173,39 @@ Logged in as: {{user}} | {{user.id}}
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 <script type="text/javascript">
     // form upload
+
+    const modalContainer = document.getElementById("reply-modal-container");
+    const close = document.getElementById("close-modal");
+
+
+    $(document).on('click', '#open-reply-modal', function (e) {
+        var this_ = $(this);
+        postid = this_.attr("value").valueOf();
+        console.log("POSTID: " + postid)
+        modalContainer.classList.add('show');
+    });
+
+
+
+
+    close.addEventListener('click', () => {
+        modalContainer.classList.remove('show');
+    });
+
+
     $('#id_ajax_upload_form').submit(function (e) {
         e.preventDefault();
         $form = $(this)
         var formData = new FormData(this);
+
+        //var this_ = $(this)
+        //postid = this_.attr("value").valueOf()
+        formData.append('postid', postid)
         $.ajax({
             url: window.location.pathname,
             type: 'POST',
             data: formData,
+
             success: function (response) {
                 //alert("JKJJK")
                 $("#replies-section").html(response['replies_list']);
@@ -191,21 +214,21 @@ Logged in as: {{user}} | {{user.id}}
                 $("#id_image").val('');
                 //console.log($("#id_image").val())
                 //$("#id_category").val('');
+                modalContainer.classList.remove('show');
             },
             cache: false,
             contentType: false,
             processData: false
         });
     });
-    // end
-</script>
 
-<script type="text/javascript">
-    // form upload
     $('#id_ajax_upload_form2').submit(function (e) {
         e.preventDefault();
         $form = $(this)
         var formData = new FormData(this);
+        //var this_ = $(this)
+        //postid = this_.attr("value").valueOf()
+        formData.append('postid', postid)
         $.ajax({
             url: window.location.pathname,
             type: 'POST',
@@ -218,6 +241,7 @@ Logged in as: {{user}} | {{user.id}}
                 $("#id_video").val('');
                 //console.log($("#id_image").val())
                 //$("#id_category").val('');
+                modalContainer.classList.remove('show');
             },
             cache: false,
             contentType: false,
@@ -226,6 +250,7 @@ Logged in as: {{user}} | {{user.id}}
     });
     // end
 </script>
+
 
 <script>
     window.addEventListener("pageshow", hideVidForm);
@@ -253,5 +278,7 @@ Logged in as: {{user}} | {{user.id}}
 
     })
 </script>
+
+<script src="{% static 'PostIT/js/replyModal.js' %}"></script>
 
 {% endblock content %}

@@ -338,3 +338,40 @@ p::-webkit-scrollbar {
 h2::-webkit-scrollbar {
     display: none;
 }
+
+/* Modal start */
+.reply-modal-container {
+    background-color: rgba(80, 80, 80, 0.8);
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.reply-modal-container.show {
+    pointer-events: auto;
+    opacity: 1;
+
+}
+
+.modal-div {
+    padding: 30px 50px;
+    border-radius: 10px;
+    background-color: #fff;
+    z-index: 10;
+    width: 600px;
+    max-width: 100%;
+
+
+}
+
+/* Modal end */
