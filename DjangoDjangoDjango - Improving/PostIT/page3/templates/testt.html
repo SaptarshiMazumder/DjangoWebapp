@@ -18,6 +18,7 @@ Page3 - Add reply
 
 
 {% if user.is_authenticated %}
+Logged in as: {{user}} | {{user.id}}
 {% if user.id == post.author.id %}
 <h1>{{ post.title }}</h1><a href="{% url 'edit-post' post.pk %}">Edit</a><br />
 {% endif %}

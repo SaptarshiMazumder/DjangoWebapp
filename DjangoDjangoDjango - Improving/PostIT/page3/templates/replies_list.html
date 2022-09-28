@@ -19,7 +19,11 @@
 
 {% for reply in replies_to_post %}
 <a href="{% url 'post-page' reply.pk %}">{{ reply.title }} </a>
-{{ reply.author}}
+{{ reply.author}} | {{reply.author.id}}<br />
+
+{% if user.id == reply.author.id %}
+<a href="{% url 'delete-post' reply.pk %}">Delete</a>
+{% endif %}
 <br />
 {{ reply.body|safe}}
 

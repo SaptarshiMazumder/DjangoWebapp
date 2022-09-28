@@ -140,7 +140,7 @@ def django_image_and_file_upload_ajax(request, pk):
         'imageform': imageform,
         'replies_to_post': replies_to_post,
     }
-
+    print('')
     context.update(post_data)
     print(context)
 
@@ -180,7 +180,9 @@ def django_image_and_file_upload_ajax(request, pk):
             for file in files2:
                 print("VIDEO FILE: ", file)
 
-            reply = Replies(reply_to=pk, post_id=instance.id)
+            reply_to_post = Post.objects.get(id=pk)
+            reply = Replies(reply_to=pk, post_id=instance.id,
+                            reply_to_post=reply_to_post)
             reply.save()
 
             return(update_replies_list(request, pk))
@@ -362,8 +364,10 @@ def return_post_data(request, post_id):
     if replies:
         print("REPLIES", replies)
         for reply in replies:
-            reply_post = Post.objects.get(id=reply.post_id)
-            replies_obj.append(reply_post)
+            if reply.post_id:
+                reply_post = Post.objects.get(id=reply.post_id)
+                if reply_post:
+                    replies_obj.append(reply_post)
         replies_to_post = replies_obj[::-1]
     liked = False
     if post.likes.filter(id=request.user.id).exists():
@@ -762,7 +766,17 @@ def edit_video_post(request, post_id):
 
 def delete_post(request, post_id):
     post = Post.objects.get(id=post_id)
+    is_reply = False
+    if post.is_reply:
+        is_reply = True
+        print("IS REPLY:", is_reply)
     post.delete()
+
+    if is_reply:
+        reply_object = Replies.objects.get(post_id=post_id)
+        print("TO BE DELETED:", reply_object)
+        reply_object.delete()
+
     return redirect('home-page')
 
 
