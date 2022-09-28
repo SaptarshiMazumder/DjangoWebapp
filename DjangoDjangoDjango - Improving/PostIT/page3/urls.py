@@ -7,12 +7,12 @@ urlpatterns = [
     #     path('', views.home, name='home-page'),
     path('', views.home_timeline, name='home-page'),
     path('', views.home_timeline, name='expanded-post-page'),
-    path('ajax-reply/<int:pk>', views.ajax_replies, name='ajax-replies'),
-    path('save_ajax_reply', views.save_ajax_reply, name='save_ajax_reply'),
+    #     path('ajax-reply/<int:pk>', views.ajax_replies, name='ajax-replies'),
+    #     path('save_ajax_reply', views.save_ajax_reply, name='save_ajax_reply'),
     path('django_image_and_file_upload_ajax/<int:pk>',
          views.django_image_and_file_upload_ajax, name='django_image_and_file_upload_ajax'),
 
-    path('post/<int:post_id>', views.post_details, name='post-page'),
+    #     path('post/<int:post_id>', views.post_details, name='post-page'),
     path('add_post', views.add_post, name='add-post'),
     path('add_image_post', views.add_image_post, name="add-image-post"),
     path('add_video_post', views.add_video_post, name="add-video-post"),
@@ -29,16 +29,13 @@ urlpatterns = [
     path('setLikes/', views.set_likes, name='set_likes'),
     path('updateSession/', views.update_session, name='update_session'),
     path('getSessionData/', views.get_session_data, name='get_session_data'),
-    path('getPostData/', views.get_post_data, name='get_post_data'),
-    path('post/reply/<int:pk>', views.add_reply, name='add-reply'),
-    path('post/image_reply/<int:pk>',
-         views.add_image_reply, name='add-image-reply'),
+    #     path('post/reply/<int:pk>', views.add_reply, name='add-reply'),
+    #     path('post/image_reply/<int:pk>',
+    #          views.add_image_reply, name='add-image-reply'),
 
-    path('post/video_reply/<int:pk>',
-         views.add_video_reply, name='add-video-reply'),
 
-    path('post/replies_page/<int:pk>',
-         views.replies_page, name='replies-page'),
+    #     path('post/replies_page/<int:pk>',
+    #          views.replies_page, name='replies-page'),
     # path('', HomeView.as_view(), name='home-page'),
     # REST API views
     path('posts', views.post_list_view, name='post-list-view'),
@@ -50,6 +47,7 @@ urlpatterns = [
 
 
     path('posts/<str:user>', views.posts_by_user, name="posts-by-user"),
-    path('create_gamer_profile/<str:user>', views.create_game_profile, name="create-gamer-profile"),
+    path('create_gamer_profile/<str:user>',
+         views.create_game_profile, name="create-gamer-profile"),
     path('matchmaking/<str:user>', views.MatchmakingHome, name="matchmaking-home"),
 ]

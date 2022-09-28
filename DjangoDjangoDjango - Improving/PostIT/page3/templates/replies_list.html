@@ -18,7 +18,7 @@
 
 
 {% for reply in replies_to_post %}
-<a href="{% url 'post-page' reply.pk %}">{{ reply.title }} </a>
+<a href="{% url 'django_image_and_file_upload_ajax' reply.pk %}">{{ reply.title }} </a>
 {{ reply.author}} | {{reply.author.id}}<br />
 
 {% if user.id == reply.author.id %}
@@ -52,9 +52,8 @@
 <button id="like-button" class="like-button" name="{{ reply.like_count }}" value="{{ reply.pk }}">LIKED BY
     {{reply.like_count}}</button>
 
-<a href="{% url 'add-reply' reply.pk %}">Text Reply</a>
-<!-- <a href="{% url 'add-image-reply' reply.pk %}">Image Reply</a> -->
-<!-- <a href="{% url 'add-video-reply' reply.pk %}">Video Reply</a> -->
+
+<a href="{% url 'django_image_and_file_upload_ajax' reply.pk %}">Reply</a>
 
 <hr>
 {% endfor %}
