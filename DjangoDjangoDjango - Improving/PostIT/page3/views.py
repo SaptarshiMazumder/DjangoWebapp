@@ -241,6 +241,15 @@ def update_replies_list(request, post_id):
         html = render_to_string('replies_list.html', context, request=request)
         # print("HTML: ", html)
         return JsonResponse({'replies_list': html, })
+    else:
+        return JsonResponse({'replies_list': "", })
+
+
+@csrf_exempt
+def fetch_replies_to_reply(request):
+    id = int(request.POST.get('postid'))
+    return(update_replies_list(request, id))
+    # return JsonResponse({'replies_list': "lkkkk", })
 
 
 def return_post_data(request, post_id):

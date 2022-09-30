@@ -7,8 +7,6 @@ urlpatterns = [
     #     path('', views.home, name='home-page'),
     path('', views.home_timeline, name='home-page'),
     path('', views.home_timeline, name='expanded-post-page'),
-    #     path('ajax-reply/<int:pk>', views.ajax_replies, name='ajax-replies'),
-    #     path('save_ajax_reply', views.save_ajax_reply, name='save_ajax_reply'),
     path('django_image_and_file_upload_ajax/<int:pk>',
          views.django_image_and_file_upload_ajax, name='django_image_and_file_upload_ajax'),
 
@@ -29,14 +27,9 @@ urlpatterns = [
     path('setLikes/', views.set_likes, name='set_likes'),
     path('updateSession/', views.update_session, name='update_session'),
     path('getSessionData/', views.get_session_data, name='get_session_data'),
-    #     path('post/reply/<int:pk>', views.add_reply, name='add-reply'),
-    #     path('post/image_reply/<int:pk>',
-    #          views.add_image_reply, name='add-image-reply'),
 
-
-    #     path('post/replies_page/<int:pk>',
-    #          views.replies_page, name='replies-page'),
-    # path('', HomeView.as_view(), name='home-page'),
+    path('fetch_replies_to_reply/', views.fetch_replies_to_reply,
+         name='fetch_replies_to_reply'),
     # REST API views
     path('posts', views.post_list_view, name='post-list-view'),
     #     path('', views.home_view, name='home-page'),

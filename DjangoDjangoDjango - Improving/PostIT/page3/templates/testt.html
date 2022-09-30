@@ -281,4 +281,63 @@ Logged in as: {{user}} | {{user.id}}
 
 <script src="{% static 'PostIT/js/replyModal.js' %}"></script>
 
+<script>
+    $(document).on('click', '#show-replies', function (e) {
+        e.preventDefault();
+
+        var this_ = $(this)
+        postid = this_.attr("value").valueOf()
+
+        $.ajax({
+            type: 'POST',
+            url: '{% url "fetch_replies_to_reply" %}',
+            data: {
+                postid: postid,
+                // postid: $('#like-button').val(),
+                action: 'post',
+            },
+            success: function (json) {
+
+                console.log(json['replies_list'])
+                let repliesHolders = document.getElementsByClassName('replies-holder');
+                for (let i = 0; i < repliesHolders.length; i++) {
+                    let attributeValue = repliesHolders[i].getAttribute('value');
+                    console.log(typeof repliesHolders[i])
+                    console.log(typeof attributeValue)
+                    console.log(attributeValue)
+                    if (postid === attributeValue) {
+                        console.log("This one!")
+                        let elem = repliesHolders[i];
+                        var child = elem.lastElementChild;
+                        while (child) {
+                            elem.removeChild(child);
+                            child = elem.lastElementChild;
+                        }
+                        //var repliesList = document.createElement("div")
+                        //repliesList.id = "replies-div"
+                        //$("#replies-div").innerHTML = "Yahallo"
+                        //console.log($('#replies-div').text())
+                        elem = repliesHolders[i]
+                        var id = 'replyTo' + postid
+
+                        elem.setAttribute('id', id)
+                        $("#" + id).html(json['replies_list'])
+
+                        //elem.html(json['replies_list']);
+
+                        //$("#replies-holder").html(json['replies_list']);
+                        //repliesList.html(json['replies_list'])
+                        //elem.appendChild(repliesList)
+
+                    }
+                }
+
+            },
+            error: function (xhr, errmsg, err) {
+
+            }
+        });
+    });
+</script>
+
 {% endblock content %}

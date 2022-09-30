@@ -260,8 +260,12 @@ Page3 Homepage
     function updateText(btn, no_of_likes) {
         btn.text("LIKED BY" + " " + no_of_likes)
     }
+
+    window.addEventListener("pageshow", myfunction())
+
     function myfunction(e) {
         e.preventDefault()
+
         let allLikes = document.getElementsByClassName('like-button');
 
 
