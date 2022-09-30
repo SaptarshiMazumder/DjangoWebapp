@@ -25,7 +25,7 @@ Logged in as: {{user}} | {{user.id}}
 {% endif %}
 
 
-<small>{{ post.author.first_name }} {{ post.author.last_name }}
+<small>{{ post.author.username }}
     {{ post.post_date}} | {{post.pk}}</small><br />
 <hr>
 {{post.body}}
@@ -72,7 +72,7 @@ Logged in as: {{user}} | {{user.id}}
 
 
 
-<button id="open-reply-modal" value="{{post.pk}}"> Click to open</button>
+<button id="open-reply-modal" value="{{post.pk}}">Reply</button>
 <!-- {% include 'post_replies_form.html' %} -->
 
 
@@ -288,6 +288,8 @@ Logged in as: {{user}} | {{user.id}}
         var this_ = $(this)
         postid = this_.attr("value").valueOf()
 
+
+
         $.ajax({
             type: 'POST',
             url: '{% url "fetch_replies_to_reply" %}',
@@ -321,7 +323,21 @@ Logged in as: {{user}} | {{user.id}}
                         var id = 'replyTo' + postid
 
                         elem.setAttribute('id', id)
+
                         $("#" + id).html(json['replies_list'])
+
+                        var div = document.getElementById(id)
+                        console.log("DIVV:", div)
+                        if (div.style.display === "none") {
+                            div.style.display = "block"
+                            console.log("THIS: ", this_)
+                            console.log()
+
+                        }
+                        else {
+                            div.style.display = "none"
+                        }
+
 
                         //elem.html(json['replies_list']);
 
@@ -338,6 +354,18 @@ Logged in as: {{user}} | {{user.id}}
             }
         });
     });
+</script>
+
+<script>
+    function toggleReplies(e) {
+        console.log("JACKAL: ", e)
+        if (e === "Show Replies") {
+            return "Hide Replies"
+        }
+        else {
+            return "Show Replies"
+        }
+    }
 </script>
 
 {% endblock content %}

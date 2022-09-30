@@ -12,12 +12,15 @@
 
 <br />
 
-<h3>Replies</h3>
 
 {% if replies_to_post %}
 
 
 {% for reply in replies_to_post %}
+{% if replyingToIsReply %}
+<p>@{{replyingToAuthor}} </p>
+{% endif %}
+
 <a href="{% url 'django_image_and_file_upload_ajax' reply.pk %}">{{ reply.title }} </a>
 {{ reply.author}} | {{reply.pk}}<br />
 
@@ -54,9 +57,10 @@
 
 
 <!-- <a href="{% url 'django_image_and_file_upload_ajax' reply.pk %}">Reply</a> -->
-<button id="open-reply-modal" value="{{reply.pk}}"> Click to open</button>
-<button id="show-replies" value="{{reply.pk}}">Show replies</button>
-<div class="replies-holder" id="replies-holder" value="{{reply.pk}}">
+<button id="open-reply-modal" value="{{reply.pk}}"> Reply</button>
+<button class="show-replies-btn" id="show-replies" value="{{reply.pk}}"
+    onclick="this.innerHTML=toggleReplies(this.innerHTML)">Show Replies</button>
+<div class="replies-holder" id="replies-holder" value="{{reply.pk}}" style="display: none;">
 
 </div>
 

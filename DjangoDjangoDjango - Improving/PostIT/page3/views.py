@@ -186,6 +186,7 @@ def django_image_and_file_upload_ajax(request, pk):
                 print("VIDEO FILE: ", file)
 
             reply_to_post = Post.objects.get(id=pk)
+
             reply = Replies(reply_to=id, post_id=instance.id,
                             reply_to_post=reply_to_post)
             reply.save()
@@ -230,11 +231,22 @@ def update_replies_list(request, post_id):
         replies_to_post = replies_obj[::-1]
         image_list = ImageFiles.objects.all()
 
+        replyingToAuthor = ""
+        replyingToIsReply = False
+        replyingTo = Post.objects.get(id=post_id)
+
+        if replyingTo:
+            replyingToAuthor = replyingTo.author.username
+            replyingToIsReply = replyingTo.is_reply
+            print("REPLYINGG TO: ", replyingToAuthor)
+            print("REPLYING TO A REPLY?: ", replyingToIsReply)
         context = {
             'replies': replies,
             'replies_obj': replies_obj,
             'replies_to_post': replies_to_post,
             'image_list': image_list,
+            'replyingToAuthor': replyingToAuthor,
+            'replyingToIsReply': replyingToIsReply,
 
         }
 
