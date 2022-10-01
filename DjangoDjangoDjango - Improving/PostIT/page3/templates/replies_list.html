@@ -22,7 +22,7 @@
 {% endif %}
 
 <a href="{% url 'django_image_and_file_upload_ajax' reply.pk %}">{{ reply.title }} </a>
-{{ reply.author}} | {{reply.pk}}<br />
+{{ reply.author}} | {{reply.pk}} | {{reply.post_datetime}}<br />
 
 {% if user.id == reply.author.id %}
 <a href="{% url 'delete-post' reply.pk %}">Delete</a>

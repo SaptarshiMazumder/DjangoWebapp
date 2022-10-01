@@ -86,7 +86,7 @@ class Replies(models.Model):
     reply_root = models.IntegerField(null=True, blank=True, default=-1)
 
     def __str__(self):
-        return str(self.reply_to) + ' | ' + str(self.post_id)
+        return 'Reply to: ' + str(self.reply_to) + ' | ' + 'Post id: ' + str(self.post_id) + ' | ' + 'reply root: ' + str(self.reply_root)
 
 
 class Profile(models.Model):

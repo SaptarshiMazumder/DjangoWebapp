@@ -24,6 +24,7 @@ from django.urls import reverse, reverse_lazy
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 from django.template.loader import render_to_string
+from django.db.models import Q
 # Create your views here.
 # Paginator stuff
 from django.core.paginator import Paginator
@@ -202,7 +203,7 @@ def django_image_and_file_upload_ajax(request, pk):
                             reply_to_post=reply_to_post, reply_root=instance.reply_root)
             reply.save()
 
-            return(update_replies_list(request, pk))
+            return(update_replies_list(request, pk, True))
             # return JsonResponse({'error': False, 'message': 'Uploaded Successfully'})
 
         if form2.is_valid():
@@ -216,9 +217,9 @@ def django_image_and_file_upload_ajax(request, pk):
             instance.save()
 
             reply = Replies(reply_to=id, post_id=instance.id,
-                            reply_to_post=reply_to_post)
+                            reply_to_post=reply_to_post, reply_root=instance.reply_root)
             reply.save()
-            return(update_replies_list(request, pk))
+            return(update_replies_list(request, pk, True))
         else:
             return JsonResponse({'error': True, 'errors': form1.errors})
     else:
@@ -245,17 +246,28 @@ def get_parent_reply_root(id):
         return -1
 
 
-def update_replies_list(request, post_id):
+def update_replies_list(request, post_id, fetching_replies_to_post):
     replies_obj = []
     replies_to_post = []
 
     replies = Replies.objects.filter(reply_to=post_id)
-    if replies:
+    replies2 = Replies.objects.filter(
+        Q(reply_to=post_id) | Q(reply_root=post_id))
+    for reply2 in replies2:
+        print("Reply2: ", reply2)
+    if replies2:
         print("REPLIES", replies)
-        for reply in replies:
+        for reply in replies2:
             reply_post = Post.objects.get(id=reply.post_id)
             replies_obj.append(reply_post)
-        replies_to_post = replies_obj[::-1]
+        # if(reply_root == -1):
+        #     replies_to_post = replies_obj[::-1]
+        # else:
+        #     replies_to_post = replies_obj
+        if fetching_replies_to_post:
+            replies_to_post = replies_obj[::-1]
+        else:
+            replies_to_post = replies_obj
         image_list = ImageFiles.objects.all()
 
         replyingToAuthor = ""
@@ -287,7 +299,7 @@ def update_replies_list(request, post_id):
 @csrf_exempt
 def fetch_replies_to_reply(request):
     id = int(request.POST.get('postid'))
-    return(update_replies_list(request, id))
+    return(update_replies_list(request, id, False))
     # return JsonResponse({'replies_list': "lkkkk", })
 
 
