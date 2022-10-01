@@ -166,6 +166,17 @@ def django_image_and_file_upload_ajax(request, pk):
             instance.author = request.user
             instance.reply_to = id
             instance.is_reply = True
+            instance.is_parent_a_reply = is_parent_a_reply(id)
+            print("is_parent_a_reply: ", instance.is_parent_a_reply)
+            if instance.is_parent_a_reply:
+                instance.reply_root = id
+            if instance.is_parent_a_reply:
+                parent_reply_root = get_parent_reply_root(id)
+                if parent_reply_root != -1:
+                    instance.reply_root = parent_reply_root
+
+                print("reply_root: ", instance.reply_root)
+
             print("INSTANCE: ", instance)
             if files:
                 instance.has_images = True
@@ -188,7 +199,7 @@ def django_image_and_file_upload_ajax(request, pk):
             reply_to_post = Post.objects.get(id=pk)
 
             reply = Replies(reply_to=id, post_id=instance.id,
-                            reply_to_post=reply_to_post)
+                            reply_to_post=reply_to_post, reply_root=instance.reply_root)
             reply.save()
 
             return(update_replies_list(request, pk))
@@ -216,6 +227,22 @@ def django_image_and_file_upload_ajax(request, pk):
         imageform = ImageForm()
 
     return render(request, 'testt.html', context)
+
+
+def is_parent_a_reply(id):
+    parent = Post.objects.get(id=id)
+    if parent:
+        return parent.is_reply
+    else:
+        return False
+
+
+def get_parent_reply_root(id):
+    parent = Post.objects.get(id=id)
+    if parent:
+        return parent.reply_root
+    else:
+        return -1
 
 
 def update_replies_list(request, post_id):

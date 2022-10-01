@@ -36,6 +36,9 @@ class Post(models.Model):
     # body = models.TextField()
     reply_to = models.IntegerField(null=True, blank=True, default=-1)
     is_reply = models.BooleanField(null=True, default=False, blank=True)
+    is_parent_a_reply = models.BooleanField(
+        null=True, default=False, blank=True)
+    reply_root = models.IntegerField(null=True, blank=True, default=-1)
     post_date = models.DateField(auto_now_add=True)
     post_datetime = models.DateTimeField(auto_now_add=True)
     category = models.CharField(max_length=50, default='none')
@@ -69,7 +72,7 @@ class Post(models.Model):
         super(Post, self).save(*args, **kwargs)
 
     def __str__(self):
-        return self.body + ' | ' + str(self.author) + '| ' + str(self.id)
+        return self.body + ' | ' + str(self.author) + '| ' + str(self.id) + ' | ' + str(self.is_reply)
 
     def get_absolute_url(self):
         return reverse('post-page', args=(str(self.post_id)))
@@ -80,6 +83,7 @@ class Replies(models.Model):
         Post, on_delete=models.CASCADE, null=True, blank=True)
     reply_to = models.IntegerField(null=True, blank=True, default=-1)
     post_id = models.IntegerField(null=True, blank=True, default=-1)
+    reply_root = models.IntegerField(null=True, blank=True, default=-1)
 
     def __str__(self):
         return str(self.reply_to) + ' | ' + str(self.post_id)
