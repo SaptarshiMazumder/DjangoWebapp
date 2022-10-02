@@ -62,11 +62,15 @@
 
 {% if reply.reply_count == 1 %}
 <button class="show-replies-btn" id="show-replies" value="{{reply.pk}}"
-    onclick="this.innerHTML=toggleReplies(this.innerHTML)">Show {{ reply.reply_count }} Reply</button>
+    onclick="this.innerHTML=toggleReplies(this.innerHTML)">Show Reply</button>
 {% else %}
+
 <button class="show-replies-btn" id="show-replies" value="{{reply.pk}}"
     onclick="this.innerHTML=toggleReplies(this.innerHTML)">Show {{ reply.reply_count }} Replies</button>
 {% endif %}
+
+
+
 
 {% endif %}
 

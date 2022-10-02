@@ -9,7 +9,8 @@ Page3 Homepage
 <div class="main-body">
     <div id="myid">Replace me</div>
 
-
+    <br /><br />
+    <button class="scroll-to-last-viewed" onclick="scrollToPos()">Go to last browsed</button>
 
     <body onload="javascript:playPauseVideo()">
 
@@ -142,7 +143,8 @@ Page3 Homepage
                                             {{post.like_count}}</button>
 
 
-                                        <a href="{% url 'django_image_and_file_upload_ajax' post.pk %}">Reply</a>
+                                        <a href="{% url 'django_image_and_file_upload_ajax' post.pk %}"
+                                            onclick="storeScroll()">Reply</a>
 
                                         {% endif %}
 
@@ -315,14 +317,14 @@ Page3 Homepage
         localStorage.setItem("loadedPosts", '{{objects}}')
         console.log(localStorage.getItem("loadedPosts"))
         console.log(localStorage.getItem("scrollPosition"))
-        console.log("Scroll position Y" + scrollPos)
+        console.log("Scroll position Y: " + scrollPos)
     }
 
     window.addEventListener("pageshow", scrollToPos);
 
-    function scrollToPos(e) {
+    function scrollToPos() {
         //e.preventDefault()
-        const element = document.getElementById("myDIV");
+        //const element = document.getElementById("myDIV");
         //alert("Attempt Scroll" + element)
         //element.scrollLeft = 5000;
         //element.scrollTop = 3000;
@@ -330,6 +332,7 @@ Page3 Homepage
         //if ('scrollRestoration' in window.history) {
         //  console.log(window.history.scrollRestoration)
         window.history.scrollRestoration = 'manual'
+        window.scrollTo(0, localStorage.getItem("scrollPosition"))
         //}
         setTimeout(function () { console.log("gjhkljhvjkl") })
 

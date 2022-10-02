@@ -372,5 +372,11 @@ h2::-webkit-scrollbar {
     max-width: 100%;
 }
 
+.scroll-to-last-viewed {
+    position: fixed;
+    z-index: 100;
+
+    color: blue;
+}
 
 /* Modal end */

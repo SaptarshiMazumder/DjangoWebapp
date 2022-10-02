@@ -358,12 +358,13 @@ Logged in as: {{user}} | {{user.id}}
 
 <script>
     function toggleReplies(e) {
-        console.log("JACKAL: ", e)
-        if (e === "Show Replies") {
-            return "Hide Replies"
+
+
+        if (e.includes("Show")) {
+            return e.replace("Show", "Hide")
         }
         else {
-            return "Show Replies"
+            return e.replace("Hide", "Show")
         }
     }
 </script>
