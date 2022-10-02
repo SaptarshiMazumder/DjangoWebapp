@@ -47,6 +47,7 @@ class Post(models.Model):
     likes = models.ManyToManyField(
         User, default=None, blank=True, related_name='posts')
     like_count = models.BigIntegerField(default='0')
+    reply_count = models.BigIntegerField(default='0')
     video = models.FileField(null=True, blank=True, upload_to="videos/")
     has_images = models.BooleanField(null=True, blank=True, default=False)
     has_video = models.BooleanField(null=True, blank=True, default=False)

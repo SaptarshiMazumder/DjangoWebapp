@@ -202,6 +202,34 @@ def django_image_and_file_upload_ajax(request, pk):
             reply = Replies(reply_to=id, post_id=instance.id,
                             reply_to_post=reply_to_post, reply_root=instance.reply_root)
             reply.save()
+            # add_reply_count(id, instance.reply_root)
+
+            # inc_object = Post.objects.filter(
+            #     Q(id=id) | Q(reply_root=id))
+            # if inc_object:
+            #     for obj in inc_object:
+            #         obj.reply_count += 1
+            #         obj.save()
+
+            # reply count add
+            add_reply_count(id, instance.reply_root)
+            # if id == instance.reply_root:
+            #     post = get_object_or_404(Post, id=id)
+            #     if post:
+            #         post.reply_count += 1
+            #         post.save()
+            # else:
+            #     post = get_object_or_404(Post, id=id)
+            #     if post:
+            #         post.reply_count += 1
+            #         post.save()
+            #     print("REPLY ROOT INSTANCE: ", instance.reply_root)
+            #     this_reply_root = get_object_or_404(
+            #         Post, id=instance.reply_root)
+            #     if this_reply_root:
+            #         this_reply_root.reply_count += 1
+            #         this_reply_root.save()
+            # ends here
 
             return(update_replies_list(request, pk, True))
             # return JsonResponse({'error': False, 'message': 'Uploaded Successfully'})
@@ -219,6 +247,7 @@ def django_image_and_file_upload_ajax(request, pk):
             reply = Replies(reply_to=id, post_id=instance.id,
                             reply_to_post=reply_to_post, reply_root=instance.reply_root)
             reply.save()
+
             return(update_replies_list(request, pk, True))
         else:
             return JsonResponse({'error': True, 'errors': form1.errors})
@@ -301,6 +330,53 @@ def fetch_replies_to_reply(request):
     id = int(request.POST.get('postid'))
     return(update_replies_list(request, id, False))
     # return JsonResponse({'replies_list': "lkkkk", })
+
+
+def add_reply_count(id, reply_root):
+    if id == reply_root:
+        post = get_object_or_404(Post, id=id)
+        if post:
+            post.reply_count += 1
+            post.save()
+            print("If part getting called")
+            print("REPLY ROOT HERE: ", reply_root)
+            try:
+                original_parent_post = Post.objects.get(
+                    id=post.reply_to)
+                if original_parent_post:
+                    original_parent_post.reply_count += 1
+                    original_parent_post.save()
+            except:
+                return
+    else:
+        try:
+            post = get_object_or_404(Post, id=id)
+            if post:
+                post.reply_count += 1
+                post.save()
+                print("Budeweiser")
+                print(type(reply_root))
+        except:
+            return
+        try:
+            if(reply_root != -1):
+                this_reply_root = Post.objects.get(id=reply_root)
+                print("Else part getting called")
+                print("REPLY ROOT HERE: ", reply_root)
+                if this_reply_root:
+                    print(">>>")
+                    this_reply_root.reply_count += 1
+                    this_reply_root.save()
+                    try:
+                        original_parent_post = Post.objects.get(
+                            id=this_reply_root.reply_to)
+                        if original_parent_post:
+                            original_parent_post.reply_count += 1
+                            original_parent_post.save()
+                    except:
+                        return
+        except:
+            return
 
 
 def return_post_data(request, post_id):
