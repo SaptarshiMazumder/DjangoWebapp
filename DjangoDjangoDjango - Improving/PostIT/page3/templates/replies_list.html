@@ -55,11 +55,27 @@
 <button id="like-button" class="like-button" name="{{ reply.like_count }}" value="{{ reply.pk }}">LIKED BY
     {{reply.like_count}}</button>
 
+<button id="open-reply-modal" value="{{reply.pk}}"> Reply</button>
+
+{% if show_replies_button %}
+{% if reply.reply_count > 0 %}
+
+{% if reply.reply_count == 1 %}
+<button class="show-replies-btn" id="show-replies" value="{{reply.pk}}"
+    onclick="this.innerHTML=toggleReplies(this.innerHTML)">Show {{ reply.reply_count }} Reply</button>
+{% else %}
+<button class="show-replies-btn" id="show-replies" value="{{reply.pk}}"
+    onclick="this.innerHTML=toggleReplies(this.innerHTML)">Show {{ reply.reply_count }} Replies</button>
+{% endif %}
+
+{% endif %}
+
+
+{% else %}
+{% endif %}
+
 
 <!-- <a href="{% url 'django_image_and_file_upload_ajax' reply.pk %}">Reply</a> -->
-<button id="open-reply-modal" value="{{reply.pk}}"> Reply</button>
-<button class="show-replies-btn" id="show-replies" value="{{reply.pk}}"
-    onclick="this.innerHTML=toggleReplies(this.innerHTML)">Show Replies</button>
 <div class="replies-holder" id="replies-holder" value="{{reply.pk}}" style="display: none;">
 
 </div>

@@ -140,6 +140,7 @@ def django_image_and_file_upload_ajax(request, pk):
         'replying_to': replying_to,
         'imageform': imageform,
         'replies_to_post': replies_to_post,
+        'show_replies_button': True,
     }
     print('')
     context.update(post_data)
@@ -202,34 +203,7 @@ def django_image_and_file_upload_ajax(request, pk):
             reply = Replies(reply_to=id, post_id=instance.id,
                             reply_to_post=reply_to_post, reply_root=instance.reply_root)
             reply.save()
-            # add_reply_count(id, instance.reply_root)
-
-            # inc_object = Post.objects.filter(
-            #     Q(id=id) | Q(reply_root=id))
-            # if inc_object:
-            #     for obj in inc_object:
-            #         obj.reply_count += 1
-            #         obj.save()
-
-            # reply count add
             add_reply_count(id, instance.reply_root)
-            # if id == instance.reply_root:
-            #     post = get_object_or_404(Post, id=id)
-            #     if post:
-            #         post.reply_count += 1
-            #         post.save()
-            # else:
-            #     post = get_object_or_404(Post, id=id)
-            #     if post:
-            #         post.reply_count += 1
-            #         post.save()
-            #     print("REPLY ROOT INSTANCE: ", instance.reply_root)
-            #     this_reply_root = get_object_or_404(
-            #         Post, id=instance.reply_root)
-            #     if this_reply_root:
-            #         this_reply_root.reply_count += 1
-            #         this_reply_root.save()
-            # ends here
 
             return(update_replies_list(request, pk, True))
             # return JsonResponse({'error': False, 'message': 'Uploaded Successfully'})
@@ -293,10 +267,13 @@ def update_replies_list(request, post_id, fetching_replies_to_post):
         #     replies_to_post = replies_obj[::-1]
         # else:
         #     replies_to_post = replies_obj
+        show_replies_button = True
         if fetching_replies_to_post:
             replies_to_post = replies_obj[::-1]
+            show_replies_button = True
         else:
             replies_to_post = replies_obj
+            show_replies_button = False
         image_list = ImageFiles.objects.all()
 
         replyingToAuthor = ""
@@ -315,6 +292,7 @@ def update_replies_list(request, post_id, fetching_replies_to_post):
             'image_list': image_list,
             'replyingToAuthor': replyingToAuthor,
             'replyingToIsReply': replyingToIsReply,
+            'show_replies_button': show_replies_button,
 
         }
 
