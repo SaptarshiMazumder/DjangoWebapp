@@ -27,6 +27,9 @@ def register(request):
         form = SignUpForm(request.POST)
         if form.is_valid():
             form.save()
+
+            # print(form)
+
         else:
             data = form.cleaned_data
             return HttpResponse("<h1>Problem with password!</h1>")

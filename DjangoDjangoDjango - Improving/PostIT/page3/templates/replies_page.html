@@ -7,77 +7,90 @@ Page3 - Add reply
 {% block content %}
 {% load crispy_forms_tags %}
 
-{% if parents_arr %}
-{% for parent in parents_arr %}
-{{ parent.author }}<br />
-{{ parent.body|safe }}<br /><br />
-{% endfor %}
-{% endif %}
-
-<br /><br /><br />
 
 
-{% if user.is_authenticated %}
-Logged in as: {{user}} | {{user.id}}
-{% if user.id == post.author.id %}
-<h1>{{ post.title }}</h1><a href="{% url 'edit-post' post.pk %}">Edit</a><br />
-{% endif %}
-{% endif %}
+<div class="main-body">
+    <div class="page-contents">
+        <div class="sidebar" style="visibility: hidden !important;"></div>
+        <div class="posts-timeline">
+            <div class="post">
+
+                <section class="post-top-part">
+                    {% for p in profiles %}
+                    {%if p.user == post.author%}
+                    <div class="profile-pic">
+                        <a href="{%url 'posts-by-user' post.author%}"><img src="{{ p.profile_pic.url}}" width="500"></a>
+                    </div>
+                    {%endif%}
+                    {% endfor %}
+                    <span class="author-date">{{post.author}} <span class="date">
+                            {{post.post_date}}
+                        </span> </span>
+                </section>
+
+                {% if user.is_authenticated %}
+                Logged in as: {{user}} | {{user.id}}
+                {% if user.id == post.author.id %}
+                <h1>{{ post.title }}</h1><a href="{% url 'edit-post' post.pk %}">Edit</a><br />
+                {% endif %}
+                {% endif %}
 
 
-<small>{{ post.author.username }}
-    {{ post.post_date}} | {{post.pk}}</small><br />
-<hr>
-{{post.body}}
-<br />
-{% if post.has_images %}
+                <small>{{ post.author.username }}
+                    {{ post.post_date}} | {{post.pk}}</small><br />
+                <hr>
+                {{post.body}}
+                <br />
+                {% if post.has_images %}
 
-{% for image in image_list %}
-{% if image.post.id == post.id %}
-<img src="{{ image.image.url}}" width="500">
-{% endif %}
-{% endfor %}
-{{ post.imagefiles}}
-{% endif %}
+                {% for image in image_list %}
+                {% if image.post.id == post.id %}
+                <img src="{{ image.image.url}}" width="500">
+                {% endif %}
+                {% endfor %}
+                {{ post.imagefiles}}
+                {% endif %}
 
-{% if post.video %}
-<video width="500" controls autoplay>
-    <source src="{{post.video.url}}" type="video/mp4">
-</video>
+                {% if post.video %}
+                <video width="500" controls autoplay>
+                    <source src="{{post.video.url}}" type="video/mp4">
+                </video>
 
-{% endif %}
-<br />
-{% if user.is_authenticated %}
+                {% endif %}
+                <br />
+                {% if user.is_authenticated %}
 
-<!-- <span id="like_count" type="hidden">{{ post.like_count}}</span> -->
-<button id="like-button" class="like-button" name="{{ post.like_count }}" value="{{ post.pk }}">LIKED BY
-    {{post.like_count}}</button>
+                <!-- Modal start -->
+
+                <div class="reply-modal-container" id="reply-modal-container">
+                    <div class="modal-div">
+                        <h1>reply to</h1>
+                        {% include 'post_replies_form.html' %}
+                        <button id="close-modal">CLose modal</button>
+                    </div>
+                </div>
+
+                <!-- Modal end -->
 
 
-{% endif %}
+                {% if user.profile.id %}
+                <!-- <span id="like_count" type="hidden">{{ post.like_count}}</span> -->
+                <button id="like-button" class="like-button" name="{{ post.like_count }}" value="{{ post.pk }}">LIKED BY
+                    {{post.like_count}}</button>
 
-<!-- Modal start -->
 
-<div class="reply-modal-container" id="reply-modal-container">
-    <div class="modal-div">
-        <h1>reply to</h1>
-        {% include 'post_replies_form.html' %}
-        <button id="close-modal">CLose modal</button>
+
+                <button id="open-reply-modal" value="{{post.pk}}">Reply</button>
+                {% endif %}
+
+                {% endif %}
+
+            </div>
+            <div id="replies-section">
+                {% include 'replies_list.html' %}
+            </div>
+        </div>
     </div>
-</div>
-
-<!-- Modal end -->
-
-
-
-
-<button id="open-reply-modal" value="{{post.pk}}">Reply</button>
-
-
-
-
-<div id="replies-section">
-    {% include 'replies_list.html' %}
 </div>
 
 <!-- JS Scripts Here -->

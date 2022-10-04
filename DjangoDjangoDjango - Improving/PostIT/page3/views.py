@@ -125,6 +125,7 @@ def upload_reply(request, pk):
             replies_obj.append(reply_post)
         replies_to_post = replies_obj[::-1]
 
+    profiles = Profile.objects.all()
     context = {
         'form1': form1,
         'form2': form2,
@@ -132,6 +133,7 @@ def upload_reply(request, pk):
         'imageform': imageform,
         'replies_to_post': replies_to_post,
         'show_replies_button': True,
+        'profiles': profiles,
     }
     print('')
     context.update(post_data)
@@ -276,6 +278,8 @@ def update_replies_list(request, post_id, fetching_replies_to_post):
             replyingToIsReply = replyingTo.is_reply
             print("REPLYINGG TO: ", replyingToAuthor)
             print("REPLYING TO A REPLY?: ", replyingToIsReply)
+
+        profiles = Profile.objects.all()
         context = {
             'replies': replies,
             'replies_obj': replies_obj,
@@ -284,6 +288,7 @@ def update_replies_list(request, post_id, fetching_replies_to_post):
             'replyingToAuthor': replyingToAuthor,
             'replyingToIsReply': replyingToIsReply,
             'show_replies_button': show_replies_button,
+            'profiles': profiles,
 
         }
 
