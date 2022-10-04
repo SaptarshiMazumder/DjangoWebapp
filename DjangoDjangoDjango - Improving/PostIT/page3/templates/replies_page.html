@@ -57,7 +57,6 @@ Logged in as: {{user}} | {{user.id}}
 {% endif %}
 
 <!-- Modal start -->
-<!-- <button id="open-reply-modal"> Click to open</button> -->
 
 <div class="reply-modal-container" id="reply-modal-container">
     <div class="modal-div">
@@ -73,7 +72,7 @@ Logged in as: {{user}} | {{user.id}}
 
 
 <button id="open-reply-modal" value="{{post.pk}}">Reply</button>
-<!-- {% include 'post_replies_form.html' %} -->
+
 
 
 
@@ -81,6 +80,7 @@ Logged in as: {{user}} | {{user.id}}
     {% include 'replies_list.html' %}
 </div>
 
+<!-- JS Scripts Here -->
 
 <script>
     function updateText(btn, no_of_likes) {
@@ -120,7 +120,7 @@ Logged in as: {{user}} | {{user.id}}
     function updateText(btn, no_of_likes) {
         btn.text("LIKED BY" + " " + no_of_likes)
     }
-    function myfunction() {
+    function updateLikes() {
 
         let allLikes = document.getElementsByClassName('like-button');
 
@@ -251,7 +251,6 @@ Logged in as: {{user}} | {{user.id}}
     // end
 </script>
 
-
 <script>
     window.addEventListener("pageshow", hideVidForm);
 
@@ -278,8 +277,6 @@ Logged in as: {{user}} | {{user.id}}
 
     })
 </script>
-
-<script src="{% static 'PostIT/js/replyModal.js' %}"></script>
 
 <script>
     $(document).on('click', '#show-replies', function (e) {

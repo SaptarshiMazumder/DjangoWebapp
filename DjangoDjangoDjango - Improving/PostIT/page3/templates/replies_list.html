@@ -21,7 +21,6 @@
 <p>@{{replyingToAuthor}} </p>
 {% endif %}
 
-<a href="{% url 'django_image_and_file_upload_ajax' reply.pk %}">{{ reply.title }} </a>
 {{ reply.author}} | {{reply.pk}} | {{reply.post_datetime}}<br />
 
 {% if user.id == reply.author.id %}
@@ -79,7 +78,7 @@
 {% endif %}
 
 
-<!-- <a href="{% url 'django_image_and_file_upload_ajax' reply.pk %}">Reply</a> -->
+<!-- <a href="{% url 'upload_reply' reply.pk %}">Reply</a> -->
 <div class="replies-holder" id="replies-holder" value="{{reply.pk}}" style="display: none;">
 
 </div>

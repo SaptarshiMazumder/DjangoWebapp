@@ -216,8 +216,8 @@ p::-webkit-scrollbar {
 
 .post .post-title {
     text-decoration: none;
-    font-size: x-large;
-    color: white;
+    /* font-size: small; */
+    color: rgb(255, 255, 255);
 }
 
 .post-category-section {
@@ -262,7 +262,6 @@ p::-webkit-scrollbar {
 .post-top-part .author-date {
     display: flex;
     flex-direction: column;
-    font-size: larger;
 }
 
 .post-top-part .author-date .date {
@@ -375,7 +374,6 @@ h2::-webkit-scrollbar {
 .scroll-to-last-viewed {
     position: fixed;
     z-index: 100;
-
     color: blue;
 }
 

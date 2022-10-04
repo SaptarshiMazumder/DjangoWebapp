@@ -7,8 +7,8 @@ urlpatterns = [
     #     path('', views.home, name='home-page'),
     path('', views.home_timeline, name='home-page'),
     path('', views.home_timeline, name='expanded-post-page'),
-    path('django_image_and_file_upload_ajax/<int:pk>',
-         views.django_image_and_file_upload_ajax, name='django_image_and_file_upload_ajax'),
+    path('upload_reply/<int:pk>',
+         views.upload_reply, name='upload_reply'),
 
     #     path('post/<int:post_id>', views.post_details, name='post-page'),
     path('add_post', views.add_post, name='add-post'),

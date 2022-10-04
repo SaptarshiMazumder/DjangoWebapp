@@ -82,8 +82,8 @@ Page3 Homepage
                                                 </span> </span>
                                         </section>
                                         <a class="post-title" onclick="storeScroll()"
-                                            href="{% url 'django_image_and_file_upload_ajax' post.pk %}">
-                                            {{post.title}}</a>
+                                            href="{% url 'upload_reply' post.pk %}">
+                                            {{post.body}}</a>
 
 
                                         {% if user.is_authenticated %}
@@ -100,10 +100,7 @@ Page3 Homepage
                                         <!-- <button id="like-button" value="{{ post.pk }}">Like</button> -->
                                         {% endif %}
                                         {% endif %}
-                                        <hr>
-                                        <div id="show-popup" value="{{ post.id }}" class="post-body">
-                                            {{ post.body|safe}}
-                                        </div>
+
 
                                         {% if post.image1 %}
                                         <img src="{{ post.image1.url}}" width="500">
@@ -112,6 +109,7 @@ Page3 Homepage
 
                                         <div class="images">
                                             {% if post.has_images %}
+
                                             {% for image in image_list %}
                                             {% if image.post.id == post.id %}
                                             <img src="{{ image.image.url}}">
@@ -143,8 +141,7 @@ Page3 Homepage
                                             {{post.like_count}}</button>
 
 
-                                        <a href="{% url 'django_image_and_file_upload_ajax' post.pk %}"
-                                            onclick="storeScroll()">Reply</a>
+                                        <a href="{% url 'upload_reply' post.pk %}" onclick="storeScroll()">Reply</a>
 
                                         {% endif %}
 

@@ -36,14 +36,6 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view
 
 
-# def home(request):
-#     object_list = Post.objects.all().order_by('-post_datetime')
-#     context = {
-#         'object_list': object_list
-#     }
-#     return render(request, 'home.html', context)
-
-
 def is_ajax(request):
     return request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest'
 
@@ -91,7 +83,6 @@ def home_timeline(request, post_id=None):
             'post': post,
             'post_id': post_id,
             'objects': objects,
-            'objects': objects,
             'last_viewed': last_viewed,
             'has_images_to_show': has_images_to_show,
             'profile': profile,
@@ -110,7 +101,7 @@ def home_timeline(request, post_id=None):
 
 
 @csrf_exempt
-def django_image_and_file_upload_ajax(request, pk):
+def upload_reply(request, pk):
     form1 = PostImageForm()
     form2 = PostVideoForm()
     imageform = ImageForm()
@@ -151,10 +142,10 @@ def django_image_and_file_upload_ajax(request, pk):
         form1 = PostImageForm(request.POST, request.FILES)
         form2 = PostVideoForm(request.POST, request.FILES)
         id = int(request.POST.get('postid'))
-        files = request.FILES.getlist("image")
-        files2 = request.FILES.getlist("video")
-        print("FILES2 UPLOADED: ", files2)
-        if files2:
+        image_files = request.FILES.getlist("image")
+        video_files = request.FILES.getlist("video")
+        print("FILES2 UPLOADED: ", video_files)
+        if video_files:
             print("FILES 2 IS NOT NONE")
             form1 = PostVideoForm(request.POST, request.FILES)
         if form1.is_valid():
@@ -180,22 +171,22 @@ def django_image_and_file_upload_ajax(request, pk):
                 print("reply_root: ", instance.reply_root)
 
             print("INSTANCE: ", instance)
-            if files:
+            if image_files:
                 instance.has_images = True
             else:
                 instance.has_images = False
 
-            if files2:
+            if video_files:
                 instance.has_video = True
             else:
                 instance.has_video = False
 
             instance.save()
 
-            for file in files:
+            for file in image_files:
                 ImageFiles.objects.create(post=instance, image=file)
 
-            for file in files2:
+            for file in video_files:
                 print("VIDEO FILE: ", file)
 
             reply_to_post = Post.objects.get(id=pk)
@@ -230,7 +221,7 @@ def django_image_and_file_upload_ajax(request, pk):
         form2 = PostVideoForm()
         imageform = ImageForm()
 
-    return render(request, 'testt.html', context)
+    return render(request, 'replies_page.html', context)
 
 
 def is_parent_a_reply(id):
