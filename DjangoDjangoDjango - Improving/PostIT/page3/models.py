@@ -29,6 +29,18 @@ class Category(models.Model):
         return reverse('home-page')
 
 
+class Profile(models.Model):
+    user = models.OneToOneField(User, null=True, on_delete=models.CASCADE)
+    bio = models.TextField()
+    profile_pic = models.ImageField(
+        null=True, blank=True, upload_to="images/profile")
+    discord_link = models.CharField(max_length=255, null=True, blank=True)
+    twitch_link = models.CharField(max_length=255, null=True, blank=True)
+
+    def __str__(self):
+        return str(self.user)
+
+
 class Post(models.Model):
     title = models.CharField(max_length=255, blank=True, null=True)
     author = models.ForeignKey(User, on_delete=models.CASCADE, default=None)
@@ -51,6 +63,9 @@ class Post(models.Model):
     video = models.FileField(null=True, blank=True, upload_to="videos/")
     has_images = models.BooleanField(null=True, blank=True, default=False)
     has_video = models.BooleanField(null=True, blank=True, default=False)
+    user_profile = models.ForeignKey(
+        Profile, on_delete=models.DO_NOTHING, default=None, null=True, blank=True,)
+    body = RichTextField(blank=True, null=True)
 
     def liked_by(self):
         likers = []
@@ -88,18 +103,6 @@ class Replies(models.Model):
 
     def __str__(self):
         return 'Reply to: ' + str(self.reply_to) + ' | ' + 'Post id: ' + str(self.post_id) + ' | ' + 'reply root: ' + str(self.reply_root)
-
-
-class Profile(models.Model):
-    user = models.OneToOneField(User, null=True, on_delete=models.CASCADE)
-    bio = models.TextField()
-    profile_pic = models.ImageField(
-        null=True, blank=True, upload_to="images/profile")
-    discord_link = models.CharField(max_length=255, null=True, blank=True)
-    twitch_link = models.CharField(max_length=255, null=True, blank=True)
-
-    def __str__(self):
-        return str(self.user)
 
 
 class ImageFiles(models.Model):

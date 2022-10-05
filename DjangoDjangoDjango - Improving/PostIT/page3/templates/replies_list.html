@@ -17,25 +17,21 @@
 
 {% for reply in replies_to_post %}
 <div class="post">
-    <section class="post-top-part">
-        {% for p in profiles %}
-        {%if p.user == reply.author%}
-        <div class="profile-pic">
-            <a href="{% url 'posts-by-user' reply.author%}">
-                {%if p.profile_pic.name %}
 
-                <img src="{{ p.profile_pic.url}}" width="500">
-                {% else %}
-                <img src="{% static 'PostIT/images/profilepic.jpg' %}" width="500">
-                {% endif %}
-            </a>
+
+    <section class="post-top-part">
+        <div class="profile-pic">
+            {%if reply.user_profile.profile_pic.name %}
+            <img src="{{ reply.user_profile.profile_pic.url }}" width="500">
+            {% endif %}
+            <!-- <img src="{{ post.user_profile.profile_pic.url }}" width="500"> -->
         </div>
-        {%endif%}
-        {% endfor %}
+
         <span class="author-date">{{reply.author}} <span class="date">
                 {{reply.post_date}}
             </span> </span>
     </section>
+
     {% if replyingToIsReply %}
     <p>@{{replyingToAuthor}} </p>
     {% endif %}

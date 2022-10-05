@@ -159,6 +159,7 @@ def upload_reply(request, pk):
             print(type(pk))
             print(type(id))
             instance.author = request.user
+            instance.user_profile = request.user.profile
             instance.reply_to = id
             instance.is_reply = True
             instance.is_parent_a_reply = is_parent_a_reply(id)
@@ -205,6 +206,7 @@ def upload_reply(request, pk):
             print("FORM2 VALID")
             instance = form2.save(commit=False)
             instance.author = request.user
+            instance.user_profile = request.user.profile
             instance.reply_to = pk
             instance.is_reply = True
             if request.FILES:
@@ -410,6 +412,8 @@ def add_post(request):
             # form.save()
             instance = form.save(commit=False)
             instance.author = request.user
+            instance.user_profile = request.user.profile
+            print("PRINTING PROFILE: ", request.user.profile)
             instance.save()
 
             return redirect('home-page')
@@ -434,6 +438,7 @@ def add_image_post(request):
             # form.save()
             instance = form.save(commit=False)
             instance.author = request.user
+            instance.user_profile = request.user.profile
             if files:
                 instance.has_images = True
             else:
@@ -465,6 +470,7 @@ def add_video_post(request):
             # form.save()
             instance = form.save(commit=False)
             instance.author = request.user
+            instance.user_profile = request.user.profile
             if request.FILES:
                 instance.has_video = True
             instance.save()

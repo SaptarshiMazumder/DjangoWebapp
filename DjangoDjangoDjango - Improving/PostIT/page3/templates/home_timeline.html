@@ -68,15 +68,15 @@ Page3 Homepage
                                                 {{post.category}}</a> <small>
                                                 {{post.id}}</small>
                                         </div>
+
                                         <section class="post-top-part">
-                                            {% for p in profiles %}
-                                            {%if p.user == post.author%}
                                             <div class="profile-pic">
-                                                <a href="{%url 'posts-by-user' post.author%}"><img
-                                                        src="media/{{p.profile_pic}}" width="500"></a>
+                                                {%if post.user_profile.profile_pic.name %}
+                                                <img src="{{ post.user_profile.profile_pic.url }}" width="500">
+                                                {% endif %}
+                                                <!-- <img src="{{ post.user_profile.profile_pic.url }}" width="500"> -->
                                             </div>
-                                            {%endif%}
-                                            {% endfor %}
+
                                             <span class="author-date">{{post.author}} <span class="date">
                                                     {{post.post_date}}
                                                 </span> </span>
