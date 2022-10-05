@@ -291,9 +291,11 @@ def update_replies_list(request, post_id, fetching_replies_to_post):
             'profiles': profiles,
 
         }
-
+        for p in profiles:
+            print("PROFILE:: ", p)
         html = render_to_string('replies_list.html', context, request=request)
         # print("HTML: ", html)
+
         return JsonResponse({'replies_list': html, })
     else:
         return JsonResponse({'replies_list': "", })

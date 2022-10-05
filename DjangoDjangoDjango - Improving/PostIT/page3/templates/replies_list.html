@@ -22,8 +22,10 @@
         {%if p.user == reply.author%}
         <div class="profile-pic">
             <a href="{%url 'posts-by-user' reply.author%}">
+                {%if p.profile_pic.name %}
 
-
+                <img src="{{ p.profile_pic.url}}" width="500">
+                {% endif %}
             </a>
         </div>
         {%endif%}
